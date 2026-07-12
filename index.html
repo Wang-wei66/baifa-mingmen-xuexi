@@ -2,8 +2,14 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#F6F1E7">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#8B6F3E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="百法明门">
 <title>百法明门论 · 互动学习</title>
 <style>
 
@@ -40,6 +46,7 @@ body{
   font-family:var(--font);
   background:var(--bg); color:var(--text);
   line-height:1.75; font-size:16px;
+  overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
   transition:background .35s ease,color .35s ease;
 }
@@ -59,6 +66,30 @@ img,svg{display:block;}
 .theme-toggle:hover{transform:scale(1.08);}
 .theme-toggle:active{transform:scale(.94);}
 .theme-toggle svg{width:21px;height:21px;}
+.font-toggle{
+  position:fixed; top:12px; right:62px; z-index:90;
+  width:42px; height:42px; border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:800; cursor:pointer; box-shadow:var(--shadow-md);
+}
+.font-toggle:hover{transform:scale(1.08);}
+.font-toggle:active{transform:scale(.94);}
+.font-pop{
+  position:fixed; top:62px; right:12px; z-index:95;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:14px;
+  box-shadow:var(--shadow-lg); padding:12px 14px; display:none; min-width:148px;
+}
+.font-pop.show{display:block; animation:fadeIn .2s;}
+.fp-title{font-size:13px; font-weight:800; color:var(--primary-dark); margin-bottom:9px; text-align:center;}
+.fp-opts{display:flex; flex-direction:column; gap:7px;}
+.fp-opt{
+  font:inherit; font-size:14px; padding:8px 0; border:1px solid var(--border);
+  background:var(--chip); color:var(--text); border-radius:9px; cursor:pointer; transition:.15s;
+}
+.fp-opt:hover{background:var(--accent); color:#fff; border-color:var(--accent);}
+.fp-opt.on{background:var(--primary); color:#fff; border-color:var(--primary); font-weight:800;}
 
 /* 容器 */
 .container{
@@ -386,6 +417,8 @@ table.rel-table tbody tr:nth-child(even){background:var(--surface-3);}
 </head>
 <body>
 <button class="theme-toggle" id="themeToggle" aria-label="切换主题"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z"/></svg></button>
+<button class="font-toggle" id="fontToggle" aria-label="字体大小">字</button>
+<div class="font-pop" id="fontPop"><div class="fp-title">字体大小</div><div class="fp-opts" id="fpOpts"></div></div>
 <div class="container">
 
   <!-- 百法详学 -->
@@ -770,6 +803,34 @@ renderVein();
 renderKeyPoints();
 renderScenarios();
 renderFilter();
+</script>
+<script>
+(function(){
+  var FS_OPTS=[85,100,115,130,145];
+  var fpOpts=document.getElementById('fpOpts');
+  var pop=document.getElementById('fontPop');
+  var cont=document.querySelector('.container');
+  var cur=parseInt(localStorage.getItem('baifa-fs')||'100',10);
+  function setFS(v){
+    cur=v; localStorage.setItem('baifa-fs',String(v));
+    if(cont){ cont.style.transform='scale('+(v/100)+')'; cont.style.transformOrigin='top center'; }
+    [].forEach.call(fpOpts.children,function(c){ c.classList.toggle('on', parseInt(c.textContent,10)===v); });
+  }
+  FS_OPTS.forEach(function(v){
+    var b=document.createElement('button'); b.className='fp-opt'; b.textContent=v+'%';
+    b.onclick=function(){ setFS(v); };
+    fpOpts.appendChild(b);
+  });
+  setFS(cur);
+  var ft=document.getElementById('fontToggle');
+  ft.onclick=function(e){ e.stopPropagation(); pop.classList.toggle('show'); };
+  document.addEventListener('click',function(e){
+    if(pop.classList.contains('show') && !pop.contains(e.target) && e.target!==ft) pop.classList.remove('show');
+  });
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+})();
 </script>
 </body>
 </html>
