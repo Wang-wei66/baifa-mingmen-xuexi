@@ -1,0 +1,16 @@
+{
+  "name": "百法明门论 · 互动学习",
+  "short_name": "百法明门",
+  "description": "《大乘百法明门论》五位百法互动学习 App：百法详学、融会贯通、核心重点、场景应用、考试自检。",
+  "lang": "zh-CN",
+  "start_url": "/baifa-mingmen-xuexi/",
+  "scope": "/baifa-mingmen-xuexi/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F1E7",
+  "theme_color": "#8B6F3E",
+  "icons": [
+    { "src": "/baifa-mingmen-xuexi/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/baifa-mingmen-xuexi/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
