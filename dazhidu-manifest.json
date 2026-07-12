@@ -3,7 +3,7 @@
   "short_name": "大智度论",
   "description": "《大智度论》互动学习 App：论典详学、融会贯通、核心重点、场景应用、考试自检。",
   "lang": "zh-CN",
-  "start_url": "./",
+  "start_url": "./dazhidu-learning.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
