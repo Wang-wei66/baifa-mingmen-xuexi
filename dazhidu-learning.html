@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#8B6F3E">
+<link rel="manifest" href="dazhidu-manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="大智度论">
+<title>大智度论 · 互动学习</title>
+<style>
+
+:root{
+  --bg:#F6F1E7; --surface:#FFFFFF; --surface-2:#FBF6EC; --surface-3:#F2EADB;
+  --text:#3A2E1F; --text-2:#6B5B45; --text-muted:#9A8B74;
+  --primary:#8B6F3E; --primary-dark:#6B4F23; --accent:#C39A45;
+  --border:#EAE0CE; --border-strong:#DBCDB2;
+  --chip:#F1E7D3; --chip-active:#EFE2C4;
+  --shadow:0 2px 10px rgba(90,65,30,.07);
+  --shadow-md:0 6px 20px rgba(90,65,30,.10);
+  --shadow-lg:0 10px 34px rgba(90,65,30,.14);
+  --success:#2E7D32; --success-bg:#EAF6EB;
+  --danger:#C0392B; --danger-bg:#FBEDEB;
+  --radius:16px; --radius-sm:11px; --radius-xs:8px;
+  --nav-h:64px;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#16130F; --surface:#211C16; --surface-2:#282219; --surface-3:#2F2920;
+  --text:#ECE4D6; --text-2:#C7BAA6; --text-muted:#8C806E;
+  --primary:#D9B46A; --primary-dark:#C8A04A; --accent:#D9B46A;
+  --border:#38312733; --border-strong:#4A4135;
+  --chip:#322B20; --chip-active:#3D3424;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
+  --shadow-md:0 6px 20px rgba(0,0,0,.42);
+  --shadow-lg:0 10px 34px rgba(0,0,0,.5);
+  --success:#69C772; --success-bg:#1F3320;
+  --danger:#E8746B; --danger-bg:#38211E;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;}
+html{font-size:16px;}
+body{
+  font-family:var(--font);
+  background:var(--bg); color:var(--text);
+  line-height:1.75; font-size:1rem;
+  overflow-x:hidden;
+  min-height:100vh; min-height:100dvh;
+  display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top,0);
+  -webkit-font-smoothing:antialiased;
+  transition:background .35s ease,color .35s ease;
+}
+/* PWA standalone 模式下额外顶距 */
+@media(display-mode:standalone){
+  body{ padding-top:calc(env(safe-area-inset-top,0) + 4px); }
+}
+::selection{background:var(--accent);color:#fff;}
+img,svg{display:block;}
+
+/* 主题切换按钮 */
+.theme-toggle{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 10px); right:10px; z-index:90;
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow-md);
+  transition:transform .2s,background .3s,color .3s,border-color .3s;
+}
+.theme-toggle:hover{transform:scale(1.08);}
+.theme-toggle:active{transform:scale(.94);}
+.theme-toggle svg{width:20px;height:20px;}
+.font-toggle{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 10px); right:56px; z-index:90;
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.938rem; font-weight:800; cursor:pointer; box-shadow:var(--shadow-md);
+}
+.font-toggle:hover{transform:scale(1.08);}
+.font-toggle:active{transform:scale(.94);}
+.font-pop{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 56px); right:10px; z-index:95;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:14px;
+  box-shadow:var(--shadow-lg); padding:12px 14px; display:none; min-width:148px;
+}
+.font-pop.show{display:block; animation:fadeIn .2s;}
+.fp-title{font-size:0.812rem; font-weight:800; color:var(--primary-dark); margin-bottom:9px; text-align:center;}
+.fp-opts{display:flex; flex-direction:column; gap:7px;}
+.fp-opt{
+  font:inherit; font-size:0.875rem; padding:8px 0; border:1px solid var(--border);
+  background:var(--chip); color:var(--text); border-radius:9px; cursor:pointer; transition:.15s;
+}
+.fp-opt:hover{background:var(--accent); color:#fff; border-color:var(--accent);}
+.fp-opt.on{background:var(--primary); color:#fff; border-color:var(--primary); font-weight:800;}
+
+/* 容器 */
+.container{
+  max-width:880px; margin:0 auto;
+  flex:1 1 auto;
+  padding:calc(env(safe-area-inset-top,0) + 58px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom,0) + 24px);
+}
+section.page{display:none;}
+section.page.active{display:block; animation:pageIn .38s cubic-bezier(.22,.61,.36,1);}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* 页面标题 */
+.page-title{
+  font-size:1.438rem; font-weight:800; letter-spacing:.5px;
+  color:var(--text); margin:6px 2px 16px;
+  display:flex; align-items:center; gap:10px;
+}
+.page-title .dot{width:9px;height:22px;border-radius:5px;background:linear-gradient(var(--primary),var(--accent));}
+
+/* ============ 首页目录 ============ */
+.home-hero{
+  text-align:center; padding:26px 10px 10px;
+}
+.home-hero .lotus{font-size:2.125rem;}
+.home-hero h1{font-size:1.562rem;font-weight:800;letter-spacing:2px;margin:8px 0 4px;color:var(--text);}
+.home-hero p{color:var(--text-muted);font-size:0.875rem;margin:0;}
+.dir-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-top:14px;
+}
+.dir-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px 16px;
+  box-shadow:var(--shadow); cursor:pointer;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  display:flex; flex-direction:column; gap:6px; position:relative; overflow:hidden;
+}
+.dir-card:active{transform:scale(.975);}
+.dir-card:hover{box-shadow:var(--shadow-md);border-color:var(--accent);}
+.dir-card .ic{
+  width:44px;height:44px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(139,111,62,.35);
+}
+.dir-card .ic svg{width:24px;height:24px;}
+.dir-card h3{font-size:1.062rem;font-weight:800;color:var(--text);margin:2px 0 0;letter-spacing:.5px;}
+.dir-card p{font-size:0.781rem;color:var(--text-muted);line-height:1.55;margin:0;}
+.dir-card .go{
+  position:absolute; right:14px; top:16px; color:var(--text-muted);
+  display:flex; align-items:center;
+}
+.dir-card .go svg{width:18px;height:18px;}
+.stat-row{
+  display:grid; grid-template-columns:repeat(5,1fr); gap:9px;
+  margin-top:16px;
+}
+.stat{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:13px 6px; text-align:center;
+  box-shadow:var(--shadow);
+}
+.stat .n{font-size:1.5rem;font-weight:800;color:var(--accent);line-height:1;}
+.stat .l{font-size:0.688rem;color:var(--text-muted);margin-top:5px;letter-spacing:.5px;}
+@media(max-width:560px){
+  .dir-grid{grid-template-columns:1fr;}
+  .stat .n{font-size:1.25rem;}
+  .page-title{font-size:1.25rem; margin-top:2px; margin-bottom:12px;}
+  .container{padding-left:14px; padding-right:14px;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0) + 20px);}
+}
+/* 字体放大时防止横向溢出 */
+.container{
+  max-width:100%;
+  width:100%;
+}
+
+/* ============ 底部导航 ============ */
+nav.bottom-nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:80;
+  min-height:var(--nav-h);
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--border-strong);
+  display:flex; align-items:stretch;
+  padding:6px 4px calc(8px + env(safe-area-inset-bottom,0));
+  box-shadow:0 -4px 22px rgba(60,40,15,.10);
+  transform:translateZ(0); will-change:transform;
+}
+/* PWA 全屏模式下，确保导航栏贴底并预留 Home 指示条空间 */
+@media(display-mode:standalone){
+  nav.bottom-nav{
+    padding-bottom:calc(env(safe-area-inset-bottom,0) + 14px);
+    background:color-mix(in srgb, var(--surface) 96%, transparent);
+  }
+}
+.nav-btn{
+  flex:1; border:none; background:transparent; cursor:pointer;
+  font-family:inherit; color:var(--text-muted);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  position:relative; border-radius:13px; padding:4px 2px;
+  transition:color .2s,background .2s;
+}
+.nav-btn .ico{width:23px;height:23px;display:flex;align-items:center;justify-content:center;}
+.nav-btn .ico svg{width:23px;height:23px;}
+.nav-btn .lbl{font-size:0.688rem;font-weight:600;letter-spacing:.5px;line-height:1;}
+.nav-btn.active{color:var(--primary);background:var(--chip-active);}
+.nav-btn.active::before{
+  content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:22px; height:3px; border-radius:3px; background:var(--primary);
+}
+.nav-btn:active{background:var(--chip);}
+
+/* ============ 论典详学 ============ */
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tabs button{
+  flex:0 0 auto; background:var(--surface); border:1px solid var(--border);
+  color:var(--text-2); font-family:inherit; font-size:0.844rem; font-weight:600;
+  padding:9px 15px; border-radius:30px; cursor:pointer; white-space:nowrap;
+  transition:.2s; letter-spacing:.5px;
+}
+.cat-tabs button:hover{border-color:var(--accent);}
+.cat-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(139,111,62,.3);}
+.cat-info{font-size:0.844rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:14px;line-height:1.65;}
+.acc{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin:11px 0; overflow:hidden;
+  box-shadow:var(--shadow); transition:box-shadow .2s;
+}
+.acc.open{box-shadow:var(--shadow-md);}
+.acc-head{
+  cursor:pointer; padding:15px 16px; display:flex; align-items:center; gap:11px;
+  background:var(--surface-2); transition:background .2s;
+}
+.acc-head:active{background:var(--chip);}
+.acc-head .idx{color:var(--accent);font-weight:800;font-size:1rem;min-width:24px;}
+.acc-head .dh{font-size:1.062rem;font-weight:800;color:var(--text);letter-spacing:.5px;}
+.acc-head .sn{font-size:0.719rem;color:var(--text-muted);font-style:italic;font-weight:400;}
+.imp-tag{font-size:0.625rem;font-weight:700;color:#fff;background:var(--danger);padding:2px 7px;border-radius:20px;letter-spacing:.5px;}
+.acc-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.acc.open .acc-head .arr{transform:rotate(90deg);color:var(--primary);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+.acc.open .acc-body{max-height:6000px;padding:4px 16px 18px;}
+.acc-body p.desc{font-size:0.938rem;color:var(--text-2);line-height:1.85;margin:12px 0;}
+.acc-body p.desc strong{color:var(--primary-dark);}
+.scene-title{font-size:0.812rem;font-weight:800;color:var(--primary);margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
+.scene-title::before{content:"";width:4px;height:15px;border-radius:3px;background:var(--accent);}
+.scenes{list-style:none;padding:0;margin:0;display:grid;gap:7px;}
+.scenes li{font-size:0.875rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:9px 12px 9px 30px;position:relative;line-height:1.65;}
+.scenes li::before{content:"◆";position:absolute;left:12px;top:9px;color:var(--accent);font-size:0.562rem;}
+.use-block{
+  margin-top:15px; padding:15px 16px;
+  background:linear-gradient(180deg,var(--surface-2),var(--chip));
+  border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  border-left:4px solid var(--accent);
+}
+.use-title{font-weight:800;color:var(--primary-dark);font-size:0.969rem;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.use-sub{font-size:0.75rem;font-weight:800;color:var(--accent);margin:11px 0 5px;padding-left:9px;border-left:3px solid var(--accent);}
+.use-scene{font-size:0.906rem;color:var(--text);line-height:1.8;margin:0;}
+.use-apply{font-size:0.906rem;color:var(--text-2);line-height:1.85;margin:0;}
+
+/* ============ 融会贯通 ============ */
+.rel-intro{font-size:0.875rem;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;margin-bottom:16px;line-height:1.7;}
+.sec-label{font-size:0.812rem;font-weight:800;color:var(--primary);letter-spacing:1px;margin:20px 2px 10px;display:flex;align-items:center;gap:7px;}
+.sec-label::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--accent);}
+.graph-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.graph-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:11px 11px 6px; box-shadow:var(--shadow); cursor:pointer; transition:box-shadow .2s,transform .15s;
+  position:relative;
+}
+.graph-card:active{transform:scale(.98);}
+.graph-card:hover{box-shadow:var(--shadow-md);}
+.graph-card .gc-title{font-size:0.812rem;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px;letter-spacing:.5px;}
+.graph-card svg{width:100%;height:auto;}
+.graph-card .zoom{position:absolute;right:9px;top:9px;color:var(--text-muted);opacity:.5;}
+.graph-card .zoom svg{width:16px;height:16px;}
+@media(max-width:560px){.graph-grid{grid-template-columns:1fr;}}
+
+.rel-nav{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 14px;}
+.rel-nav button{
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-2); font-family:inherit; font-size:0.812rem; font-weight:600;
+  padding:8px 13px; border-radius:20px; cursor:pointer; transition:.2s; letter-spacing:.5px;
+}
+.rel-nav button:hover{border-color:var(--accent);}
+.rel-nav button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.rel-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:18px 18px; margin:8px 0 16px;
+  box-shadow:var(--shadow);
+}
+.rel-card h3{font-size:1.125rem;font-weight:800;color:var(--primary-dark);letter-spacing:.5px;margin:0 0 12px;line-height:1.5;}
+.rel-body{font-size:0.938rem;color:var(--text);line-height:1.9;}
+.rel-table-wrap{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch;}
+table.rel-table{width:100%;border-collapse:collapse;font-size:0.844rem;background:var(--surface-2);border-radius:var(--radius-xs);overflow:hidden;}
+table.rel-table th{background:var(--primary);color:#fff;padding:10px 12px;text-align:left;font-weight:700;letter-spacing:.5px;}
+table.rel-table td{padding:9px 12px;border-top:1px solid var(--border);color:var(--text-2);vertical-align:top;}
+table.rel-table tbody tr:nth-child(even){background:var(--surface-3);}
+
+/* 图放大 modal */
+#graphModal{
+  position:fixed; inset:0; z-index:120; display:none;
+  background:rgba(20,15,8,.78); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:20px;
+}
+#graphModal.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#graphModal .gm-inner{
+  background:var(--surface); border-radius:var(--radius); max-width:560px; width:100%;
+  max-height:90vh; overflow:auto; padding:18px; box-shadow:var(--shadow-lg);
+}
+#graphModal .gm-title{font-size:1.062rem;font-weight:800;color:var(--primary-dark);margin-bottom:10px;text-align:center;}
+#graphModal svg{width:100%;height:auto;}
+#graphModal .gm-close{
+  position:absolute; top:calc(env(safe-area-inset-top,0) + 8px); right:10px; color:#fff; font-size:1.75rem; cursor:pointer;
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  z-index:130;
+}
+#graphModal .gm-text{font-size:0.844rem;color:var(--text-2);line-height:1.9;margin-top:14px;background:var(--surface-2);border-radius:var(--radius-xs);padding:12px 14px;}
+#graphModal .drill-tip{margin-top:16px;font-size:0.812rem;color:var(--primary);font-weight:700;text-align:center;}
+#graphModal .drill-grp{margin-top:13px;}
+#graphModal .drill-h{font-size:0.844rem;font-weight:800;color:var(--primary-dark);margin-bottom:9px;}
+#graphModal .drill-chips{display:flex;flex-wrap:wrap;gap:7px;}
+#graphModal .drill-chip{font:inherit;font-size:0.781rem;padding:5px 11px;border:1px solid var(--border);background:var(--chip);color:var(--text);border-radius:20px;cursor:pointer;transition:.18s;}
+#graphModal .drill-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px);}
+.graph-hint{font-size:0.781rem;color:var(--primary);text-align:center;margin-top:9px;opacity:.85;letter-spacing:.4px;}
+
+/* ============ 核心重点 ============ */
+.kp{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:17px 18px; margin:12px 0;
+  box-shadow:var(--shadow); border-left:4px solid var(--accent);
+}
+.kp h3{font-size:1.062rem;font-weight:800;color:var(--primary-dark);margin:0 0 10px;letter-spacing:.5px;}
+.kp .plain{font-size:0.906rem;color:var(--text);line-height:1.8;margin:8px 0;}
+.kp .meta{font-size:0.875rem;color:var(--text-2);line-height:1.8;margin:8px 0;background:var(--surface-2);border-radius:var(--radius-xs);padding:10px 13px;}
+.kp .lab{font-weight:800;color:var(--primary);}
+
+/* ============ 场景应用 ============ */
+.scn{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin:12px 0; overflow:hidden; box-shadow:var(--shadow);
+}
+.scn-head{
+  padding:15px 16px; cursor:pointer; font-weight:800; color:var(--text);
+  font-size:0.969rem; display:flex; gap:10px; align-items:center; background:var(--surface-2);
+  transition:background .2s;
+}
+.scn-head:active{background:var(--chip);}
+.scn-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.scn.open .scn-head .arr{transform:rotate(90deg);color:var(--primary);}
+.scn-body{max-height:0;overflow:hidden;transition:max-height .4s ease;padding:0 16px;}
+.scn.open .scn-body{max-height:3000px;padding:6px 0 16px;}
+.scn-body .row{margin:0 0 14px;padding:13px 15px;background:var(--surface-2);border-radius:var(--radius-xs);border-left:3px solid var(--accent);font-size:0.906rem;color:var(--text-2);line-height:1.95;}
+.scn-body .row:last-child{margin-bottom:0;}
+.scn-body .lab{display:block;font-weight:800;color:var(--primary);font-size:0.844rem;margin-bottom:7px;letter-spacing:.6px;}
+/* 现代场景连线 */
+.kp-body .modern,.scn-body .modern{border-left:3px solid var(--accent);background:var(--chip);border-radius:var(--radius-xs);padding:10px 13px;margin:8px 0;font-size:0.844rem;color:var(--text);line-height:1.85;}
+.kp-body .modern .lab,.scn-body .modern .lab{color:var(--primary-dark);font-weight:800;}
+
+/* ============ 考试题目 ============ */
+.exam-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow);}
+.exam-box p{font-size:0.906rem;color:var(--text-2);margin:8px 0;}
+.exam-box .muted{color:var(--text-muted);font-size:0.812rem;}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;
+  font-family:inherit;font-size:0.969rem;font-weight:700;letter-spacing:1px;
+  padding:13px 30px;border-radius:30px;cursor:pointer;margin-top:14px;
+  box-shadow:0 6px 18px rgba(139,111,62,.35);transition:transform .15s,box-shadow .2s;
+}
+.btn-primary:hover{box-shadow:0 8px 22px rgba(139,111,62,.45);}
+.btn-primary:active{transform:scale(.97);}
+.exam-progress{font-size:0.812rem;color:var(--text-muted);text-align:center;margin:6px 0 14px;font-weight:600;}
+.q{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin:13px 0;}
+.qt{font-size:0.969rem;font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.6;}
+.typ{display:inline-block;font-size:0.688rem;font-weight:700;color:var(--primary);background:var(--chip);padding:2px 9px;border-radius:12px;margin-right:8px;letter-spacing:.5px;}
+.opt{
+  display:flex;align-items:center;gap:11px;padding:12px 14px;margin:8px 0;
+  background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-xs);
+  cursor:pointer;font-size:0.906rem;color:var(--text-2);transition:border-color .15s,background .15s;
+}
+.opt:active{border-color:var(--accent);}
+.opt input{accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;}
+.opt.sel{border-color:var(--primary);background:var(--chip-active);color:var(--text);}
+.opt.correct{border-color:var(--success);background:var(--success-bg);color:var(--text);}
+.opt.wrong{border-color:var(--danger);background:var(--danger-bg);color:var(--text);}
+.qbtn{
+  margin-top:10px;background:transparent;border:1px solid var(--accent);color:var(--primary);
+  font-family:inherit;font-size:0.812rem;font-weight:700;padding:8px 18px;border-radius:20px;cursor:pointer;letter-spacing:.5px;transition:.2s;
+}
+.qbtn:hover{background:var(--chip);}
+.exp{display:none;margin-top:11px;padding:12px 15px;background:var(--chip);border-left:4px solid var(--accent);border-radius:var(--radius-xs);font-size:0.875rem;color:var(--text);line-height:1.8;}
+.exp.show{display:block;animation:fadeIn .3s;}
+.result{text-align:center;padding:10px;}
+.result .score{font-size:3.375rem;font-weight:800;color:var(--primary);line-height:1;}
+.result .score span{font-size:1.375rem;color:var(--text-muted);}
+.result .eval{font-size:1rem;font-weight:700;color:var(--text);margin:12px 0;}
+.result .muted{font-size:0.844rem;color:var(--text-muted);margin-top:8px;}
+
+
+/* 标题图标 */
+.page-title .pt-ico{width:23px;height:23px;color:var(--primary);flex:none;}
+.page-title .dot{display:none;}
+
+/* ============ 论典详学 · 层级 ============ */
+.cat-block{border:1px solid var(--border);border-radius:var(--radius);margin:14px 0;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);}
+.cat-head{display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;background:linear-gradient(135deg,var(--surface-2),var(--surface-3));}
+.cat-head:active{background:var(--chip);}
+.cat-name{font-size:1.062rem;font-weight:800;color:var(--primary-dark);letter-spacing:.5px;}
+.cat-count{font-size:0.75rem;color:var(--text-muted);background:var(--chip);padding:2px 9px;border-radius:20px;}
+.cat-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.cat-block.open .cat-head .arr{transform:rotate(90deg);color:var(--primary);}
+.cat-body{padding:8px 14px 16px;}
+.cat-block:not(.open) .cat-body{display:none;}
+.cat-info{font-size:0.844rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin:10px 0 6px;line-height:1.65;}
+.grp{margin-top:4px;}
+.grp-title{font-size:0.875rem;font-weight:800;color:var(--accent);border-left:3px solid var(--accent);padding-left:9px;margin:14px 0 4px;letter-spacing:.5px;}
+.grp-title .gc{color:var(--text-muted);font-weight:600;font-size:0.75rem;margin-left:6px;}
+.acc-head .grp-tag{font-size:0.625rem;font-weight:700;color:#fff;background:var(--accent);padding:2px 7px;border-radius:20px;letter-spacing:.5px;}
+.rel-note{background:var(--surface-2);border-left:4px solid var(--primary);border-radius:var(--radius-xs);padding:11px 13px;margin:6px 0 12px;font-size:0.875rem;color:var(--text-2);line-height:1.75;}
+.rel-note .lab{color:var(--primary-dark);font-weight:800;}
+
+/* 核心重点折叠 */
+.kp-body .plain{font-size:0.906rem;color:var(--text);line-height:1.8;margin:8px 0;}
+.kp-body .meta{font-size:0.875rem;color:var(--text-2);line-height:1.8;margin:8px 0;background:var(--surface-2);border-radius:var(--radius-xs);padding:10px 13px;}
+.kp-body .lab{font-weight:800;color:var(--primary);}
+
+/* 关系图文字 */
+.graph-text{font-size:0.812rem;color:var(--text-2);line-height:1.7;margin-top:8px;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-xs);border:1px solid var(--border);}
+.graph-card .gsvg{cursor:pointer;}
+.vein-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+
+/* 考试筛选 */
+.exam-filter{margin:6px 0 14px;}
+.exam-filt-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;align-items:center;}
+.exam-filt-label{font-size:0.781rem;font-weight:800;color:var(--primary-dark);letter-spacing:.4px;width:100%;margin-bottom:4px;}
+.exam-filter button{background:var(--surface);border:1px solid var(--border);color:var(--text-2);font-family:inherit;font-size:0.781rem;font-weight:600;padding:7px 11px;border-radius:18px;cursor:pointer;transition:.18s;letter-spacing:.3px;}
+.exam-filter button:hover{border-color:var(--accent);}
+.exam-filter button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.exam-filter button.sub{font-size:0.719rem;padding:5px 9px;border-radius:14px;background:var(--chip);}
+.exam-filter button.sub.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.exam-batch{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:4px 8px;}
+.exam-batch span{font-size:0.75rem;color:var(--text-muted);font-weight:600;}
+.exam-batch select{font:inherit;font-size:0.781rem;border:none;background:transparent;color:var(--primary);font-weight:700;cursor:pointer;outline:none;}
+.dh-link{margin-top:8px;}
+.flash{animation:flash 1.5s;}
+@keyframes flash{0%,100%{box-shadow:var(--shadow);}30%{box-shadow:0 0 0 3px var(--accent);}}
+.q .qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.q .qnum{font-size:0.75rem;font-weight:800;color:var(--accent);letter-spacing:.3px;margin-bottom:4px;}
+.q .dhlink{font-size:0.781rem;}
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z"/></svg></button>
+<button class="font-toggle" id="fontToggle" aria-label="字体大小">字</button>
+<div class="font-pop" id="fontPop"><div class="fp-title">字体大小</div><div class="fp-opts" id="fpOpts"></div></div>
+<div class="container">
+
+  <!-- 论典详学 -->
+  <section class="page active" id="detail">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8 12 13 3 8Z"/><path d="M3 13 12 18 21 13"/><path d="M3 8v8"/><path d="M21 8v8"/></svg></span>论典详学</div>
+    <div class="rel-intro">《大智度论》以般若为空海、以菩萨道为宗。下方按「板块 → 组 → 法/义」层层展开，每个条目标注其所属分组与「关联及定位」，点开可见定义、生活场景与转换应对。</div>
+    <div id="detailList"></div>
+  </section>
+
+  <!-- 融会贯通 -->
+  <section class="page" id="relation">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="6" r="2.4"/><circle cx="18.5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7.6 7.2 10.4 16"/><path d="M16.4 7.2 13.6 16"/><path d="M7.9 6h8.2"/></svg></span>融会贯通</div>
+    <div class="rel-intro">《大智度论》的法义并非孤立名词，而是一张紧密相连的「般若地图」。下方先以逻辑关系图直观呈现，再沿法理脉络逐层拆解义理之间的关系、作用机制与修学次第。</div>
+    <div class="sec-label">逻辑关系图（点击可放大）</div>
+    <div class="graph-grid" id="graphGrid"></div>
+    <div class="sec-label">法理脉络（逻辑图 + 详解）</div>
+    <div class="vein-grid" id="veinGrid"></div>
+  </section>
+
+  <!-- 核心重点 -->
+  <section class="page" id="keypoint">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 1 4 10.5c-.9.9-1.4 1.8-1.4 2.5H9.4c0-.7-.5-1.6-1.4-2.5A6 6 0 0 1 12 3Z"/></svg></span>核心重点</div>
+    <div class="rel-intro">点击标题展开／收起。十项核心，用通俗语言与日常比喻，串起《大智度论》的宗旨与修行落点。</div>
+    <div id="kpList"></div>
+  </section>
+
+  <!-- 场景应用 -->
+  <section class="page" id="scenario">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 11.2 11.2 8.5 15.5 12.8 12.8Z"/></svg></span>场景应用</div>
+    <div id="scnList"></div>
+  </section>
+
+  <!-- 考试题目 -->
+  <section class="page" id="exam">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2 2 4-4.2"/></svg></span>考试题目</div>
+    <div class="exam-box" id="examBox">
+      <div id="examStart">
+        <p>本题库共 <strong>258</strong> 题，覆盖全部 63 个条目（每法≥2 题、重点法另有深度题）及法之间的关系。可按板块筛选后开始答题，每题作答后可查看解析，并跳转回对应论典。</p>
+        <p class="muted">单选每题 2 分、多选每题 4 分（须全选对），按正确率评定。多选至少选两项方为有效。</p>
+        <div class="exam-filter" id="examFilter"></div>
+        <div style="text-align:center"><button class="btn-primary" id="startExam">开始答题</button></div>
+      </div>
+      <div id="examMain" style="display:none;">
+        <div style="margin-bottom:12px"><button class="qbtn" id="backToFilter">← 返回分类筛选</button></div>
+        <div class="exam-progress" id="examProgress"></div>
+        <div id="examQs"></div>
+        <div style="text-align:center"><button class="btn-primary" id="submitExam">提交答卷</button></div>
+      </div>
+      <div id="examResult" style="display:none;"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-btn" data-page="detail"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8 12 13 3 8Z"/><path d="M3 13 12 18 21 13"/><path d="M3 8v8"/><path d="M21 8v8"/></svg></span><span class="lbl">论典</span></button>
+  <button class="nav-btn" data-page="relation"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="6" r="2.4"/><circle cx="18.5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7.6 7.2 10.4 16"/><path d="M16.4 7.2 13.6 16"/><path d="M7.9 6h8.2"/></svg></span><span class="lbl">贯通</span></button>
+  <button class="nav-btn" data-page="keypoint"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 1 4 10.5c-.9.9-1.4 1.8-1.4 2.5H9.4c0-.7-.5-1.6-1.4-2.5A6 6 0 0 1 12 3Z"/></svg></span><span class="lbl">重点</span></button>
+  <button class="nav-btn" data-page="scenario"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 11.2 11.2 8.5 15.5 12.8 12.8Z"/></svg></span><span class="lbl">场景</span></button>
+  <button class="nav-btn" data-page="exam"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2 2 4-4.2"/></svg></span><span class="lbl">考试</span></button>
+</nav>
+
+<!-- 图放大 -->
+<div id="graphModal">
+  <div class="gm-inner">
+    <div class="gm-close" id="gmClose">×</div>
+    <div id="gmInner"></div>
+  </div>
+</div>
+<script>
+// ===== 数据 =====
+const CATS = [{"key": "ti", "name": "论典纲要（释论之体）", "short": "论典纲要", "count": 6, "intro": "《大智度论》是龙树菩萨阐释《摩诃般若波罗蜜经》（大品般若）的巨著，姚秦鸠摩罗什译为汉文，凡一百卷。它既是般若经的注释，也是一部组织完备的大乘佛法百科全书。本门先认识论主、译者、所释本经、组织结构与说法体例，为深入正文奠基。", "groups": [], "dharmas": [{"name": "龙树菩萨", "sn": "Nāgārjuna / 论主", "imp": true, "desc": ["龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。", "《大智度论》是龙树为《大品般若经》所作的广释。他以『毕竟空』融摄一切法门，既说空义不堕断灭，又显方便不废修行，是大乘菩萨道的总枢要。"], "scenes": ["读《中论》『八不』（不生不灭、不常不断…），是在看龙树如何破二边", "听到『八宗共祖』的称呼，即指龙树", "修学者常以《大智度论》为进入般若海的钥匙", "研究空宗与有宗之争，龙树是绕不开的起点"], "rel": "龙树为论主，罗什为译者；论依《大品般若》而造，以毕竟空摄一切法门，为后世中观学派之源。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}, {"name": "鸠摩罗什", "sn": "Kumārajīva / 译师", "imp": true, "desc": ["鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。", "《大智度论》百卷即罗什所译。他译经讲究『达意』而非字比，使深奥的空义以流畅汉文呈现，千载之下仍为学人奉为圭臬。"], "scenes": ["读到罗什所译经文，体会其文辞之美", "了解『什译』与后世玄奘译本的体例差异", "在长安逍遥园遗址遥想当年译场盛况", "比较梵本—罗什译本—玄奘译本，知传译之难"], "rel": "罗什译《大智度论》百卷，并译所释《摩诃般若波罗蜜经》；其译笔奠定汉传般若、中观之基。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}, {"name": "摩诃般若波罗蜜经", "sn": "Mahā-prajñāpāramitā Sūtra / 所释本经", "imp": true, "desc": ["《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "该经广说菩萨般若行：观诸法空、修六波罗蜜、严净佛土、成就众生。罗什另译二十七卷本，即《大品》；玄奘于《大般若经》第二会重译。论依此经逐品作释。"], "scenes": ["翻开《大品般若》，即见论所依之原典", "读『菩提萨埵』『波罗蜜』等名，知是论中反复解释的核心", "比较《心经》《金刚经》（小品般若）与《大品》的详略", "研学般若，先读本经再读论释，事半功倍"], "rel": "论为《摩诃般若波罗蜜经》之释；经说『般若波罗蜜』，论广演其义，二者体用相成。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}, {"name": "百卷结构与序品", "sn": "组织 · 释论体例", "imp": false, "desc": ["《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。", "这种『详序略余』的体例，使序品中每一名相（如五眼、神通、四悉檀）都得到充分展开，等于以序品为纲，带出整部大乘佛法的体系。"], "scenes": ["读到卷一浩瀚的序品释文，初觉繁复，后知是总纲", "研究『论何以详序略余』，理解罗什/龙树的教法安排", "用『先序品、后诸品』的线索翻阅百卷", "写论文时以序品释为索引，检索某一教义"], "rel": "论释经以序品为纲；序品所举五眼、神通、四悉檀等，皆于前三十余卷广释，为全论骨架。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}, {"name": "四悉檀", "sn": "Catvāri-siddhānta / 说法四例", "imp": true, "desc": ["『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。", "前三檀为方便（权），后一檀为实（实相）。佛说法不出此四，闻者根熟则入第一义。论卷一即以四悉檀判摄全体佛法。"], "scenes": ["听法师说法，分辨他是在『世界悉檀』（劝善）还是『第一义悉檀』（说空）", "对不同根器的人，用不同方式开导，即是行『为人悉檀』", "对治自己的贪瞋，用的是『对治悉檀』", "读经遇浅近语，知是权说，不执为实"], "rel": "四悉檀为论之判教总纲：世界、为人、对治三为权巧，第一义为实相；权实双运，归趣毕竟空。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}, {"name": "大乘菩萨道·宗趣", "sn": "Bodhisattva-yāna / 宗趣", "imp": false, "desc": ["《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。", "论的归趣是『阿耨多罗三藐三菩提』（无上正等正觉）。一切法门皆为此一目标而说，读论当知每法皆指归菩提。"], "scenes": ["发愿『众生无边誓愿度』时，正是入论之宗趣", "区分小乘『自了』与大乘『度他』的不同用心", "读论遇『菩萨』二字，即想起『悲智双运』", "规划修行路线，以『成佛度生』为总目标"], "rel": "论宗趣在大乘菩提：般若为智、方便为悲，二道双运，终证无上菩提；一切法门皆趣此一。", "_cat": "论典纲要（释论之体）", "_short": "论典纲要"}]}, {"key": "prajna", "name": "般若波罗蜜（智慧核心）", "short": "般若", "count": 24, "intro": "般若波罗蜜是《大智度论》的灵魂——『到彼岸的智慧』，即照见诸法实相、毕竟空寂的无漏智。本门先明般若体性与所证实相，再以『十八空』层层遣执、以『三解脱门』入无相法性。空不是断灭，而是离一切戏论的真实。", "groups": ["十八空", "三解脱门"], "dharmas": [{"name": "般若波罗蜜", "sn": "Prajñā-pāramitā / 智慧到彼岸", "imp": true, "desc": ["『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。", "论中处处显般若：它不是世智辩聪，而是『无所得』之智——知一切法空、无我、不可得，而悲心不舍众生。般若本身就是最大的方便。"], "scenes": ["念佛、布施时回向『无住相』，即是行般若", "遇境不执『我得、我失』，是般若现行", "读《心经》『照见五蕴皆空』，即是般若总纲", "做决定时以『缘起无我』观照，减少我执干扰"], "rel": "般若为六度之导（五度如盲，般若如导）；与方便波罗蜜不一不二，合为菩萨二道。十八空、三解脱门皆般若之开演。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "诸法实相", "sn": "Bhūta-tathatā / 真实相", "imp": true, "desc": ["『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "论云：『诸法实相，不生不灭，不常不断，不一不异，不来不出』（八不）。实相虽离言，却是一切法之本来面目，般若即如其实际而见。"], "scenes": ["看一朵花，知它刹那生灭、缘起无实，即近实相", "争论『有我无我』时，记起实相离二边", "面对成败，体认『不增不减』的平等性", "禅观中放下能所，稍窥实相无相"], "rel": "实相为般若所证；以十八空遣遍计，以三解脱门入无相，皆趣此诸法实相。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "毕竟空", "sn": "Śūnyatā / 究竟空", "imp": true, "desc": ["『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。", "毕竟空不是断灭空、不是虚无，而是『有空不二』——虽见万法无自性，却不妨碍如幻缘起、悲愿度生。论主以毕竟空破一切戏论，归中不二。"], "scenes": ["听人说『一切皆空』，区分『断灭空』与『毕竟空』", "做善事不居功『我作了善』，是毕竟空的气度", "遇挫折，知苦乐皆毕竟空，不被击垮", "读论遇『空亦复空』，体会不执空见"], "rel": "毕竟空摄十八空之极，与三解脱门相应；不堕断常二边，即中道实相。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "内空", "sn": "Adhyātma-śūnyatā", "imp": false, "desc": ["内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "论以内外空破『我』执之依处——身心中求我不可得。"], "scenes": ["观照『谁在听、谁在想』，六根中无实我", "禅修中觉知根尘和合，不认根即我", "被骂时知『耳根只是收音，骂者实空』"], "rel": "十八空之一；与外空、内外空共破我执依处。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "外空", "sn": "Bāhya-śūnyatā", "imp": false, "desc": ["外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。", "内空破我、外空破我所；内外俱空，我执我所执皆不可得。"], "scenes": ["看美景不生『实有美景归我』之执", "知外境如镜中像，不逐不取", "购物时觉『商品只是缘起相，无实可执』"], "rel": "十八空之一；与内空对破我我所。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "内外空", "sn": "Adhyātma-bāhya-śūnyatā", "imp": false, "desc": ["内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。", "由内外空，知『我能取、境可取』的对待本空。"], "scenes": ["眼见色时，观根、境、识三皆空", "对话中觉『说者、听者、语』三相俱幻", "修『无能取所取』平等舍"], "rel": "十八空之一；总摄内空外空。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "空空", "sn": "Śūnyatā-śūnyatā", "imp": false, "desc": ["空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "毕竟空义：空亦复空，不滞空见。"], "scenes": ["口头『万法皆空』时，反观『此空见亦空』", "不落入『既然空，何必修行』的断见", "知空是遣执之药，药亦当舍"], "rel": "十八空之一；破执空之病，显毕竟空。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "大空", "sn": "Mahā-śūnyatā", "imp": false, "desc": ["大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。", "方空破『此处彼处』的实有分别。"], "scenes": ["辨别东西南北时，知方位是人为施设", "远行时觉『去来方所皆空』", "观十方世界无碍，心不局一隅"], "rel": "十八空之一；破空间实执。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "第一义空", "sn": "Paramārtha-śūnyatā", "imp": false, "desc": ["第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。", "第一义空即涅槃、真如之异名；证此空者入不二门。"], "scenes": ["离言绝虑时，稍会第一义空", "读经至『不可说』处，知是第一义", "禅中能所双泯，近第一义空"], "rel": "十八空之一；即实相空，为究竟。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "有为空", "sn": "Saṃskṛta-śūnyatā", "imp": false, "desc": ["有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "有为空摄一切生灭法，显其无住。"], "scenes": ["看念头生灭，知有为法空", "观身体老病，体有为无常空", "随缘做事不执『所成』"], "rel": "十八空之一；空有为法。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无为空", "sn": "Asaṃskṛta-śūnyatā", "imp": false, "desc": ["无为空：观『无为法』（涅槃等不生灭者）亦空。不可执涅槃为实有可得，否则成『爱着涅槃』之病。", "空无为，显涅槃亦不可得，方是真解脱。"], "scenes": ["不把『涅槃』当另一处实有地", "证境中不执『我已得涅槃』", "知无为空破爱着寂灭"], "rel": "十八空之一；空无为法，防执涅槃。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "毕竟空", "sn": "Atyanta-śūnyatā", "imp": false, "desc": ["毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。", "毕竟空破一切戏论，归中不二。"], "scenes": ["遇任何法，皆观其毕竟空", "争论有无时，归毕竟空", "知毕竟空不碍如幻度生"], "rel": "十八空之一；为总空，摄诸空。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无始空", "sn": "Anavarāgra-śūnyatā", "imp": false, "desc": ["无始空：观生死轮回『无始』（无开端），众生往来无际，本空无实。破『我有始来』之执。", "无始空显轮回如幻、无实流转者。"], "scenes": ["思『我何时开始轮回』，知无始空", "轮回观中不着『实有轮回者』", "知无始空，息生死疲劳"], "rel": "十八空之一；空轮回始际。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "散空", "sn": "Vikṣepa-śūnyatā", "imp": false, "desc": ["散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。", "散空破『我』之实体，显假合无实。"], "scenes": ["观身体四大分散，知无实我", "情绪散去时，知『我』只是相续", "聚会离散，体散空无住"], "rel": "十八空之一；空假合聚散。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "性空", "sn": "Svabhāva-śūnyatā", "imp": false, "desc": ["性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "性空即『无自性空』，为般若正见之基。"], "scenes": ["问『这东西什么做的』，知无自性", "见物即观其缘起无性", "以性空破『实有自体』执"], "rel": "十八空之一；即无自性空，为核心。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "自相空", "sn": "Svalakṣaṇa-śūnyatā", "imp": false, "desc": ["自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。", "自相空显一切相皆不可得。"], "scenes": ["细看一物的形色，知其相亦空", "分别『这是花那是树』时，知相空", "观万相无实自相"], "rel": "十八空之一；空别相。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "诸法空", "sn": "Sarva-dharma-śūnyatā", "imp": false, "desc": ["诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。", "诸法空摄尽一切，显法法皆空。"], "scenes": ["遇任何法皆作『空』观", "善法恶法俱空，不执善相", "总持诸法空印"], "rel": "十八空之一；总空一切法。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "不可得空", "sn": "Anupalaṃbha-śūnyatā", "imp": false, "desc": ["不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。", "不可得空显『无所得』，正是般若心髓。"], "scenes": ["求『我』不可得、求『法』不可得", "得财得誉，知不可得空", "《心经》『无智亦无得』即此"], "rel": "十八空之一；显无所得。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无法空", "sn": "Abhāva-śūnyatā", "imp": false, "desc": ["无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。", "无法空破断见，空『无』之一边。"], "scenes": ["说『什么都没有』时，知『无』亦空", "不落断灭见", "观无法亦不可得"], "rel": "十八空之一；空断灭边。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "有法空", "sn": "Bhāva-śūnyatā", "imp": false, "desc": ["有法空：观『有（存在）』亦空。不可执『有』为实，堕于常见。", "有法空破常见，空『有』之一边；与无法空合显中道。"], "scenes": ["执『实有万物』时，观有法空", "不落常见", "观有亦不可得"], "rel": "十八空之一；空常见边。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无法有法空", "sn": "Bhāvābhāva-śūnyatā", "imp": false, "desc": ["无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "无法有法空即『离二边中道』之空。"], "scenes": ["争论『有无』时，归离二边", "知有空、无空，双遣入中", "《中论》八不正显此空"], "rel": "十八空之一；总离有无二边。", "group": "十八空", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "空解脱门", "sn": "Śūnyatā-vimokṣa-mukha", "imp": true, "desc": ["空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。", "修空门，破我法二执，心得解脱。"], "scenes": ["观无常无我，从『我执』中松脱", "被赞不被『我好』所缚", "修无我观，渐入空门"], "rel": "三解脱门之一；与无相、无愿同入实相。", "group": "三解脱门", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无相解脱门", "sn": "Animitta-vimokṣa-mukha", "imp": false, "desc": ["无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。", "空破『有』，无相破『相』；相离则缚脱。"], "scenes": ["见美色不取『美相』", "分别『好丑』时修无相", "禅中离一切相貌"], "rel": "三解脱门之一；破相缚。", "group": "三解脱门", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}, {"name": "无愿解脱门", "sn": "Apriṇihita-vimokṣa-mukha", "imp": false, "desc": ["无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "空、无相、无愿三门，同证涅槃无相。"], "scenes": ["不贪来世福报、不求三有", "对轮回果不『愿求』", "修出离心即无愿门"], "rel": "三解脱门之一；破愿求有。", "group": "三解脱门", "_cat": "般若波罗蜜（智慧核心）", "_short": "般若"}]}, {"key": "bodhisattva", "name": "菩萨行（六度·四摄·三十七道品）", "short": "菩萨行", "count": 17, "intro": "菩萨以般若为导，广修万行。本门以『六波罗蜜』为纲（布施、持戒、忍辱、精进、禅定、般若），以『四摄』化他，以『三十七道品』为菩提资粮。六度中般若为导，前五度若无般若，则沦为有漏善；般若若无方便（悲），则堕二乘。", "groups": ["六度", "四摄", "三十七道品"], "dharmas": [{"name": "布施波罗蜜", "sn": "Dāna-pāramitā", "imp": true, "desc": ["布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。", "论中强调『三轮体空』施——施者、受者、所施皆空，无住相施方名波罗蜜。"], "scenes": ["捐款助人时，不执『我在施』", "予人安慰（无畏施），解其恐惧", "分享正法（法施），胜财施", "吃饭时思『这口饭也布施给虫蚁』"], "rel": "六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "持戒波罗蜜", "sn": "Śīla-pāramitā", "imp": true, "desc": ["持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "戒为定慧之基；持戒清净，则心安稳、堪能入定。"], "scenes": ["起恶念即摄持，不令出口", "受戒后遇境『宁可守戒不遂欲』", "以『不恼众生』为戒之本", "工作中守诚信，即是行戒"], "rel": "六度之二；为定慧基；与忍辱、精进相连。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "忍辱波罗蜜", "sn": "Kṣānti-pāramitā", "imp": true, "desc": ["忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。", "忍辱是对治瞋毒的利剑；『一念瞋心起，百万障门开』，能忍方护功德。"], "scenes": ["被误解不反击，修耐怨害忍", "病痛中不怨天，修安受苦忍", "闻深法不惊怖，修谛察法忍", "堵车不起路怒，即是忍"], "rel": "六度之三；对治瞋；与般若空慧相应（观能骂所骂皆空）。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "精进波罗蜜", "sn": "Vīrya-pāramitā", "imp": false, "desc": ["精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "精进须中道：太过掉举、不及懈怠，皆非；以般若简择所缘。"], "scenes": ["定课不间断，是精进", "遇障难不退菩提心", "改习气勇悍，不姑息", "工作中持续投入正事"], "rel": "六度之四；为诸度发动机；与懈怠相对。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "禅定波罗蜜", "sn": "Dhyāna-pāramitā", "imp": false, "desc": ["禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。", "定是慧之依；由定生慧，观诸法空。"], "scenes": ["打坐摄心，是修禅", "做事时心一境性，近定", "以禅定力不为境转", "数息、念佛皆入定方便"], "rel": "六度之五；为慧依；与般若相资。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "般若波罗蜜（六度之导）", "sn": "Prajñā-pāramitā (in 六度)", "imp": true, "desc": ["六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "般若与方便不一不二：以般若空故不执，以方便悲故不舍。"], "scenes": ["行善时回向『无所得』，即般若导", "知功德亦空，不居功", "空有双运：认真修行却不执果", "以般若简别正邪，不入邪定"], "rel": "六度之导；与论首『般若波罗蜜』同体；与方便道合为二道。", "group": "六度", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "布施（四摄）", "sn": "Dāna (Sāṃgraha)", "imp": false, "desc": ["四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。", "四摄是菩萨『同事摄』前的接引方便。"], "scenes": ["先以请客、赠礼拉近距离", "贫者施财、病者施药", "说法前先令对方安心（无畏）", "用布施打破人际隔阂"], "rel": "四摄之一；与六度布施同源，专为化他。", "group": "四摄", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "爱语", "sn": "Priya-vādita", "imp": false, "desc": ["爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "爱语对治粗恶语，是利他的口业清净。"], "scenes": ["批评前先肯定对方长处", "用对方听得进的方式说真话", "安慰失意者，软语温言", "微信回复先共情再说理"], "rel": "四摄之二；对治恶口；与方便道相应。", "group": "四摄", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "利行", "sn": "Arthacaryā", "imp": false, "desc": ["利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。", "利行是『同事摄』的资粮——先有益他之行，方能与之同事。"], "scenes": ["主动帮同事分担难题", "为社区做义工", "教人一技之长", "把『对别人有用』放进每日计划"], "rel": "四摄之三；实利他行。", "group": "四摄", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "同事", "sn": "Samānārthatā", "imp": false, "desc": ["同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "同事是四摄的落实处：不居高临下，而平等同行。"], "scenes": ["为度人而学对方的行业语言", "与孩子同玩而教善", "团队中先同甘苦再倡正见", "不以『我度你』的姿态，而以同行者身份"], "rel": "四摄之四；平等摄化之极。", "group": "四摄", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "四念处", "sn": "Smṛtyupasthāna", "imp": false, "desc": ["四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "菩萨亦修四念处，但知其空故不证涅槃，回向众生。"], "scenes": ["观身不净，对治身见贪爱", "观受是苦，离苦乐执", "观心无常，不执念头为『我』", "观法无我，破我执法执"], "rel": "三十七道品之首；三解脱门、空慧之基。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "四正勤", "sn": "Samyak-pradhāna", "imp": false, "desc": ["四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。", "四正勤摄一切断恶修善之行。"], "scenes": ["起恶念立刻觉照断除", "防微杜渐，恶未生先防", "主动培养善习惯", "已行善则令增长不退"], "rel": "三十七道品之二；即精进波罗蜜之相。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "四神足", "sn": "Ṛddhi-pāda", "imp": false, "desc": ["四神足：欲、勤、心、观四种『神通之足』，由之身心轻安、成就禅定神变。是定力增长的因。", "四神足为得定之基，通于禅定波罗蜜。"], "scenes": ["以『欲』（愿成就）推动修行", "以『勤』不懈", "以『心』专注", "以『观』抉择所缘"], "rel": "三十七道品之三；定之资粮。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "五根", "sn": "Pañcendriya", "imp": false, "desc": ["五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。", "五根与五力同体，根未坚为『根』，坚则为『力』。"], "scenes": ["培植清净信心", "以精进为根", "以正念为根", "以定慧为根生长功德"], "rel": "三十七道品之四；与五力相资。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "五力", "sn": "Pañcabala", "imp": false, "desc": ["五力：信、精进、念、定、慧坚固成『力』，能破烦恼、不为所动。是五根之成熟。", "根力双修，则烦恼不侵。"], "scenes": ["信心坚固，邪说难动", "精进成力，懈怠难侵", "定力成力，掉举难乱", "慧力成力，痴暗难蔽"], "rel": "三十七道品之五；五根之坚。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "七觉支", "sn": "Sapta-bodhyaṅga", "imp": false, "desc": ["七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。", "七觉支重在调心：沉则起择法精进喜，浮则起轻安定舍。"], "scenes": ["以念觉支觉照当下", "以择法觉支简别正邪", "沉时修精进喜，浮时修舍定", "禅修中善用七觉调心"], "rel": "三十七道品之六；菩提觉证之支。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}, {"name": "八正道", "sn": "Āryāṣṭāṅga-mārga", "imp": true, "desc": ["八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。", "菩萨行六度，亦以八正道为体；正见即般若空慧。"], "scenes": ["正见：以缘起空为正见", "正语：离妄语两舌", "正业：离杀盗淫", "正定：无漏定", "日常以八正道检束身口意"], "rel": "三十七道品之七；摄戒定慧，正见即般若。", "group": "三十七道品", "_cat": "菩萨行（六度·四摄·三十七道品）", "_short": "菩萨行"}]}, {"key": "twoways", "name": "二道二智·发心回向", "short": "二道二智", "count": 7, "intro": "《大智度论》以『二道二智』为菩萨行的总纲：般若道（慧行）与方便道（悲行）双运，一切智、道种智、一切种智次第成就。发菩提心是起点，回向是让功德不虚耗、趣向菩提的枢纽。", "groups": ["二道", "三智"], "dharmas": [{"name": "般若道", "sn": "Prajñā-mārga / 慧行", "imp": true, "desc": ["般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。", "二道中，般若道偏重自证空性；与方便道并行，不证涅槃而利生。"], "scenes": ["静坐观空，是行般若道", "以空慧抉择，不迷邪见", "读经思惟实相，慧行增上", "遇境即观『无所得』"], "rel": "二道之一；与方便道双运；成一切智、道种智。", "group": "二道", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "方便道", "sn": "Upāya-mārga / 悲行", "imp": true, "desc": ["方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "方便非虚伪，而是『以无所得为方便』——虽行万行而三轮体空。"], "scenes": ["为度人示现种种方便", "以爱语同事接引众生", "做慈善不居功，是方便", "工作中以善巧助人解难"], "rel": "二道之一；与般若道双运；即方便波罗蜜。", "group": "二道", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "一切智", "sn": "Sarvajña / 声闻缘觉智", "imp": false, "desc": ["一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。", "二智之初；菩萨亦须具，然不滞于此。"], "scenes": ["知『诸法皆空』这一总相", "小乘圣者所证之智", "学人先得一切智之空见", "以一切智破我执"], "rel": "三智之一；二道所成之初智；偏总相。", "group": "三智", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "道种智", "sn": "Mārgajña / 菩萨智", "imp": true, "desc": ["道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。", "道种智即『知病识药』之智；与一切智合，空有双照。"], "scenes": ["善知识能因机说法，是道种智", "辨别不同根器施不同法", "菩萨以道种智庄严佛土", "教师因材施教，近道种智用"], "rel": "三智之二；菩萨所证；知差别门。", "group": "三智", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "一切种智", "sn": "Sarvākāra-jñatā / 佛智", "imp": true, "desc": ["一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "三智之极；二道圆修、二利究竟，方证此智，即无上菩提。"], "scenes": ["佛『无所不知』即一切种智", "修到二道究竟，二智合一", "以菩提为目标，趣一切种智", "读经知佛智圆满难测"], "rel": "三智之极；佛果所证；即无上菩提智。", "group": "三智", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "发菩提心", "sn": "Bodhicitta / 菩提心", "imp": true, "desc": ["发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。", "菩提心如种子、如劫火，能坏一切惑、生一切智；不发心则非菩萨。"], "scenes": ["诵『众生无边誓愿度』时，正是发心", "遇众生苦，触动『我要救度』之愿", "以菩提心为每日初念", "做大事先立『为众生成佛』之志"], "rel": "菩萨行之始；与二道二智相系；回向所趣。", "group": "二道", "_cat": "二道二智·发心回向", "_short": "二道二智"}, {"name": "回向", "sn": "Pariṇāmanā / 回向", "imp": false, "desc": ["回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。", "论强调『以无所得故回向』——三轮体空而回向，方名清净回向。"], "scenes": ["做功德默念『回向众生、回向菩提』", "不把善行据为『我的福报』", "临睡回向一日善根", "布施后回向，功德增广无尽"], "rel": "与发心相承；使二道二智之果趣无上菩提。", "group": "二道", "_cat": "二道二智·发心回向", "_short": "二道二智"}]}, {"key": "cure", "name": "修行对治·四谛十二因缘", "short": "对治", "count": 5, "intro": "菩萨虽谈空，却不废对治。本门以四谛（苦集灭道）为佛法总纲、十二因缘为流转还灭之链，并以忏悔净罪、念佛法门（易行道）为当机方便，最终破我见、邪见等一切执着。", "groups": [], "dharmas": [{"name": "四谛", "sn": "Catvāri-āryasatyāni", "imp": true, "desc": ["四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。", "菩萨深观四谛而不仅自度——知苦愍生、断集修道、证灭不住。"], "scenes": ["生病时观『苦谛』，不怨天", "觉察烦恼是『集谛』之因", "以八正道为『道谛』实行", "见众生苦，起悲心救度"], "rel": "佛法总纲；与十二因缘、八正道相连；菩提出世间智所依。", "_cat": "修行对治·四谛十二因缘", "_short": "对治"}, {"name": "十二因缘", "sn": "Pratītya-samutpāda", "imp": true, "desc": ["十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。", "论广释十二因缘『即是佛性、即空』——缘起即空，空故可转。菩萨以此观生死如幻。"], "scenes": ["追『我为何轮回』，顺观十二支", "修还灭，逆观断无明", "知『爱取有』是轮回关键", "育儿中观『触受爱取』的相续"], "rel": "流转还灭之链；与四谛相摄；即空故可转。", "_cat": "修行对治·四谛十二因缘", "_short": "对治"}, {"name": "忏悔", "sn": "Kṣamā / 忏悔", "imp": false, "desc": ["忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。", "忏悔非自卑，而是『改过向善』的勇健；与惭愧心所相应。"], "scenes": ["做错事主动认错悔改", "每日反省，发露过失", "诵经礼佛以忏悔业障", "对伤害过的人当面道歉"], "rel": "对治覆、恼等随烦恼；净障入道之要。", "_cat": "修行对治·四谛十二因缘", "_short": "对治"}, {"name": "念佛·易行道", "sn": "Buddhānusmṛti / 易行道", "imp": true, "desc": ["念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。", "易行非浅易，而是『他力方便』；与般若空慧不违——念而无念，心佛双泯。"], "scenes": ["持名『南无阿弥陀佛』，心有依托", "烦恼重时以念佛摄心", "以易行道接引怯弱众生", "念佛中体『是心是佛』之旨"], "rel": "与难行道（六度）对；方便摄生；不违般若。", "_cat": "修行对治·四谛十二因缘", "_short": "对治"}, {"name": "破邪见", "sn": "Wrong Views / 破执", "imp": false, "desc": ["破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "破见不堕『恶取空』——空是遣执，非抹杀缘起；正见即八正道之首。"], "scenes": ["闻『无我』不堕『无因断灭』", "破『上帝实造』等常见", "争论『空有』时归中道", "以正见简别邪教邪说"], "rel": "对治恶见等根本烦恼；显中道，护持正见。", "_cat": "修行对治·四谛十二因缘", "_short": "对治"}]}, {"key": "fruit", "name": "果德·涅槃净土", "short": "果德", "count": 4, "intro": "修因克果。本门显菩萨行之归宿：无上菩提（一切种智）、涅槃（毕竟空寂之解脱）、净土（阿弥陀佛西方极乐，易行道之所趣）、不退转菩萨功德。果德虽空，却是悲愿所趣、众生所归。", "groups": [], "dharmas": [{"name": "无上菩提", "sn": "Anuttarā-samyak-saṃbodhi", "imp": true, "desc": ["无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "论以『菩提』为宗趣；二道二智、六度万行，皆趣此一。"], "scenes": ["发愿『愿成佛道』，即以菩提为的", "读佛传，想成佛之历程", "以菩提心贯串一切修行", "知修行终极是觉悟非空无"], "rel": "论之宗趣；一切种智之果；二道所趣。", "_cat": "果德·涅槃净土", "_short": "果德"}, {"name": "涅槃", "sn": "Nirvāṇa", "imp": true, "desc": ["涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。", "般若所证实相即涅槃；菩萨『不住涅槃』而还度众生，是悲智双运。"], "scenes": ["禅定中暂息纷扰，稍窥涅槃寂静", "知涅槃非『死』，而是惑尽", "菩萨不住涅槃而度生", "离执处即是涅槃分"], "rel": "与诸法实相、毕竟空相应；菩萨不住而利生。", "_cat": "果德·涅槃净土", "_short": "果德"}, {"name": "净土", "sn": "Buddha-kṣetra / 西方极乐", "imp": true, "desc": ["净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "净土是方便与实相不二——虽言『有土』，亦唯心所现、性空寂。"], "scenes": ["念佛求生极乐，是易行道归宿", "观『心净则土净』", "以净土为修行之靠托", "劝人发愿往生，摄怯弱众生"], "rel": "与念佛易行道相系；性空故唯心所现。", "_cat": "果德·涅槃净土", "_short": "果德"}, {"name": "不退转", "sn": "Avaivartika / 不退", "imp": false, "desc": ["不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "论明不退之相；易行道亦以『即得不退』劝进众生。"], "scenes": ["修行怕退心，知有不退保障", "念佛得忍，安心不退", "以『必成佛』之信策进", "劝人『一发心永不退』"], "rel": "菩萨功德；与菩提、净土相资；易行道所赐。", "_cat": "果德·涅槃净土", "_short": "果德"}]}];
+const USE_MAP = {"龙树菩萨": {"scene": "读到『八宗共祖』，你也许觉得这只是个头衔；但若真去读《中论》『不生亦不灭，不常亦不断…』，会发现它把你脑子里『有、无、生、灭』的死结一下子松开了——那是龙树在替你破二边。", "apply": "如何觉察：遇到『非有即无』的二元争论时，认出自己正落在边见。如何转换：学龙树『离二边中道』——不执有、不执无、不执亦有亦无、不执非有非无。如何在生活中善用：吵架时别急着分『我对你错』，先看到双方都落在某一边；决策时不被『非A即B』框住，找第三只眼。"}, "鸠摩罗什": {"scene": "你读到的每一句流畅般若，都是罗什在长安译场『手执梵本、口宣秦言』反复斟酌的结果。今天你随手划过的『毕竟空』三字，背后是千年孤明的传灯。", "apply": "如何觉察：读经遇拗口或看似矛盾处，不急着嫌『译得不好』。如何转换：知传译之难，对法宝生珍重想；遇难解处，广参异译（玄奘本等）。如何在生活中善用：得到别人翻译、转述的成果（文档、教程），先感恩再批评；做跨文化沟通时，学罗什『达意优先』的智慧。"}, "摩诃般若波罗蜜经": {"scene": "翻开《大品般若》，满纸『菩萨、般若、波罗蜜』，初读如坠云里；但每当你在生活里试着『做了好事不记功』，其实已经在读这部经的注脚。", "apply": "如何觉察：把经文的『波罗蜜』对应到日常『到彼岸』的小步。如何转换：每做一事，问『这能让我离执着更近吗』。如何在生活中善用：把《大品》当『修行说明书』而非天书——遇到情绪、关系、工作，都去经里找对应的度（布施、忍辱、般若）。"}, "四悉檀": {"scene": "你给焦虑的朋友灌『诸法皆空』，他更慌了；换成『先睡一觉、运动一下』（世界悉檀），他松了——这就是没用对悉檀。", "apply": "如何觉察：说法前先看清对方根器与当下的『病』。如何转换：对初机用世界/为人悉檀（安慰、劝善），对烦恼用对治悉檀，对利根用第一义悉檀。如何在生活中善用：管理、教学、育儿皆然——先接住情绪（权），再导以正见（实），权实双运。"}, "般若波罗蜜": {"scene": "你帮了人，心里暗暗记下『我做了多大善事』——这正是缺般若的布施，只成有漏福。般若教你『做了像没做』。", "apply": "如何觉察：行善后是否暗生『我慢』。如何转换：以『三轮体空』回向——施者、受者、所施皆不可得。如何在生活中善用：认真做每一件事，却不在心里给『我』记功；利益越大，越松手。"}, "诸法实相": {"scene": "你拼命想『证明自己有价值』，其实在缘起法里，『我』只是暂时和合的相，本无实相可执。停下来看一朵花，它从不证明自己。", "apply": "如何觉察：起『我必须怎样』的焦虑时，观能执所执俱空。如何转换：以八不（不生不灭…）松绑二元。如何在生活中善用：被评价牵动时，回到『实相无相』——好评差评都只是缘起相，不往心里去。"}, "毕竟空": {"scene": "有人说『既然一切皆空，那杀人放火也没关系』——这是把毕竟空听成了断灭空。毕竟空是『有空不二』，正因空故，因果不昧、悲愿不舍。", "apply": "如何觉察：自己是否滑向『空故无责任』的断见。如何转换：空是破执不是抹杀——因空故如幻因果宛然，更当谨因果、发悲愿。如何在生活中善用：看破名利空，反而更踏实做人；知空故不颓废，知有故不懈怠。"}, "内空": {"scene": "被骂时你觉『我受了委屈』，其实六根中找『我』不可得——耳根只是收音，『我』是附加的戏论。", "apply": "如何觉察：受辱时观『谁在受』。如何转换：根尘和合无实我，松掉『我受辱』的执。如何在生活中善用：批评、病痛来时，分清楚『根尘的生理反应』与『我附加的意义』，后者一松，苦就薄了。"}, "空空": {"scene": "你刚学会说『万法皆空』，便以此压人、懒得修行——这『空见』本身也要空掉。", "apply": "如何觉察：是否执着『我懂空了』的高位。如何转换：空空——连空见也放下，不滞空病。如何在生活中善用：不把『看破』当口头禅；真看破的人，更柔和、更肯做。"}, "性空": {"scene": "你执着『这段关系必须永恒』，性空提醒：一切法无自性，关系也是因缘聚散，抓不住也不必抓。", "apply": "如何觉察：对人对物是否求『实有不变』。如何转换：观其缘起无性，松手而不绝情。如何在生活中善用：失恋、离职、迁居，以性空减痛；珍惜缘起，不执自性。"}, "无法有法空": {"scene": "争论『世界是唯物的还是有神的』，两边都没完；无法有法空让你退一步：连『有』『无』这两筐都空。", "apply": "如何觉察：自己卡在哪种二元对立里。如何转换：双遣有无，入离言中道。如何在生活中善用：团队里『激进派/保守派』之争，做那个指回『两边皆执』的人，促成第三方案。"}, "空解脱门": {"scene": "你一被夸就飘，一被贬就崩——空解脱门练的是『夸贬都穿不透我』。", "apply": "如何觉察：情绪随外境剧烈起伏时。如何转换：观无我我所，从『我执』松脱。如何在生活中善用：每天挑一件『让我上头的事』，用空门观一遍：夸的是谁？贬的是谁？"}, "布施波罗蜜": {"scene": "捐款后你发朋友圈『今日行善+1』，这布施只到『人天福』。波罗蜜的布施是『给完就忘』。", "apply": "如何觉察：施后是否暗盼回报/点赞。如何转换：三轮体空——施者受者所施皆空，无住相施。如何在生活中善用：帮人别留『人情账』；给得越痛快，心越自由。"}, "忍辱波罗蜜": {"scene": "堵车被人加塞，你狂按喇叭——这是忍辱波罗蜜的考题。能忍，不是憋，而是看穿『加塞者与我都空』。", "apply": "如何觉察：怒火窜起的第一秒。如何转换：耐怨害忍（不反击）+ 谛察法忍（观能骂所骂皆空）。如何在生活中善用：把每次被冒犯当『免费禅修』；路怒、被怼，都是忍辱现场。"}, "禅定波罗蜜": {"scene": "你打坐五分钟就想着『微信有没有消息』——散乱是定的天敌。禅定波罗蜜练的是『心能住在一处』。", "apply": "如何觉察：心是否总被通知拽走。如何转换：以所缘（呼吸、佛号）系心，渐得轻安。如何在生活中善用：工作 25 分钟不分心，就是微型禅定；少用『多任务』，训练一心。"}, "八正道": {"scene": "你嘴上说『修行』，却天天妄语、混日子——八正道是把修行落进日常的尺子：正语、正业、正命。", "apply": "如何觉察：身口意是否偏离正道。如何转换：以正见（般若空慧）导正思惟，落实正语正业正命。如何在生活中善用：每天用八正道自检——这话该说吗？这事该做吗？这活正当吗？"}, "般若道": {"scene": "你只顾埋头帮人（方便道），却从不想『我为何帮、帮对了吗』——缺般若道，善行易成瞎忙。", "apply": "如何觉察：是否在『只行动不观照』。如何转换：以般若空慧照所行，悲智双运。如何在生活中善用：做公益、带团队，定期停下来『以智慧复盘』，避免好心办坏事。"}, "方便道": {"scene": "你满脑子『空空空』，却对求助者冷冰冰——那是只剩般若道、丢了方便道。菩萨是『先同你坐下来，再与你说法』。", "apply": "如何觉察：是否『有理无情』。如何转换：以善巧方便接引，同事摄化。如何在生活中善用：劝人改过，先共情再说理；想影响谁，先站到他的立场。"}, "一切种智": {"scene": "你佩服那种『什么场合都能给出恰当建议』的人——那近于道种智；而佛的一切种智，是总别双照的圆满。", "apply": "如何觉察：自己是否只懂『总道理』不懂『具体人』。如何转换：练『知病识药』——总相（空）与别相（根器）双照。如何在生活中善用：做 mentor，既给原则，又因人而异；空有双照，才是真智慧。"}, "发菩提心": {"scene": "你立 flag『今年要变好』，三天就废——发菩提心是更大的 flag，但它是『为众生成佛』，动力来自『愿』而非『瘾』。", "apply": "如何觉察：目标是否只为自己、易退。如何转换：把个人目标连到『利他成佛』的大愿，动力更久。如何在生活中善用：做困难长期事，常回向『为助人故』；愿力够大，懈怠难侵。"}, "回向": {"scene": "你做完美事就『存档』等回报，一回向等于把功德『指给众生和菩提』，反而增广无尽。", "apply": "如何觉察：是否把善行据为己有。如何转换：以无所得回向众生、回向菩提。如何在生活中善用：每天睡前把当日善根回向；不居功，福报反而流转不息。"}, "四谛": {"scene": "你反复在同一类关系里受伤，却从不看『集谛』（模式之因）——只处理果，不斩因，当然循环。", "apply": "如何觉察：是否在重复同一种苦。如何转换：顺观苦集、逆修灭道。如何在生活中善用：写『复盘日记』找行为模式（集），用八正道（道）改，苦自然淡。"}, "十二因缘": {"scene": "你刷手机停不下来：触（ notification）→受（爽）→爱（想更多）→取（点开）→有（又刷半小时），这正是十二因缘的活标本。", "apply": "如何觉察：被哪一个支拽着走。如何转换：逆观断『无明→爱取』，在『触』处截断。如何在生活中善用：关推送、设限额，在『受』生爱前松手；知轮回链，才能断轮回链。"}, "念佛·易行道": {"scene": "你烦恼太重、坐不住禅，硬修难行道只会放弃——念佛易行道是给你的一根扶手：『南无阿弥陀佛』，心有依托就好办。", "apply": "如何觉察：是否因根钝而退怯。如何转换：以称名摄心，借佛力不退。如何在生活中善用：通勤、洗碗时默念，把碎片时间变修行；不轻视『简单易行』的法门。"}, "无上菩提": {"scene": "你问『修行到底图啥』——图的就是无上菩提：彻底觉悟、究竟自由。不是为了『死后去哪』，而是活成不被动摇的人。", "apply": "如何觉察：修行是否只剩『求平安』的小目标。如何转换：以无上菩提为总目标，二道二智皆趣此。如何在生活中善用：大事小情都连回『觉悟』——每破一执，就离菩提近一步。"}, "涅槃": {"scene": "你累到想『什么都不管了』——那叫逃避，不是涅槃。涅槃是惑尽的后得寂静，是『能担当后的放下』。", "apply": "如何觉察：想躺平是懈怠还是真解脱。如何转换：以般若断惑，方得真寂灭。如何在生活中善用：该歇歇好，但歇是为了更好地利生，不是躲。"}, "净土": {"scene": "你怕『一个人修不下去』——净土就是给你一个『不退转的靠托』：信愿行，往生极乐，有伴同行。", "apply": "如何觉察：是否因孤独而退心。如何转换：以信愿行系心净土，借胜缘不退。如何在生活中善用：找善知识、共修团体，在人间先建『小净土』；孤军易退，有伴易进。"}};
+const REL_NOTES = {"龙树菩萨": "论主；造《大智度论》释《大品般若》，立毕竟空、中道，为八宗共祖。", "鸠摩罗什": "译师；于长安译出本论百卷及所释《摩诃般若波罗蜜经》。", "摩诃般若波罗蜜经": "本论所释根本经典；说般若波罗蜜，论广演其义。", "百卷结构与序品": "论释经以序品为纲，前三十余卷广释序品，为全论骨架。", "四悉檀": "论之判教总纲：世界、为人、对治为权，第一义为实。", "大乘菩萨道·宗趣": "论宗趣在大乘菩提，般若为智、方便为悲，二道双运。", "般若波罗蜜": "六度之导；与方便波罗蜜不一不二，合为二道；十八空、三解脱门皆其开演。", "诸法实相": "般若所证；以十八空遣遍计，以三解脱门入无相。", "毕竟空": "摄十八空之极，与三解脱门相应；不堕断常，即中道实相。", "内空": "十八空之一；与外空、内外空共破我执依处。", "外空": "十八空之一；与内空对破我我所。", "内外空": "十八空之一；总摄内空外空。", "空空": "十八空之一；破执空之病，显毕竟空。", "大空": "十八空之一；破空间实执。", "第一义空": "十八空之一；即实相空，为究竟。", "有为空": "十八空之一；空有为法。", "无为空": "十八空之一；空无为法，防执涅槃。", "毕竟空（十八空）": "十八空之一；为总空，摄诸空。（与论首毕竟空义同）", "无始空": "十八空之一；空轮回始际。", "散空": "十八空之一；空假合聚散。", "性空": "十八空之一；即无自性空，为核心。", "自相空": "十八空之一；空别相。", "诸法空": "十八空之一；总空一切法。", "不可得空": "十八空之一；显无所得。", "无法空": "十八空之一；空断灭边。", "有法空": "十八空之一；空常见边。", "无法有法空": "十八空之一；总离有无二边。", "空解脱门": "三解脱门之一；与无相、无愿同入实相。", "无相解脱门": "三解脱门之一；破相缚。", "无愿解脱门": "三解脱门之一；破愿求有。", "布施波罗蜜": "六度之首；三轮体空相应，般若为导；四摄中亦有布施。", "持戒波罗蜜": "六度之二；为定慧基；与忍辱、精进相连。", "忍辱波罗蜜": "六度之三；对治瞋；与般若空慧相应。", "精进波罗蜜": "六度之四；诸度发动机；与懈怠相对。", "禅定波罗蜜": "六度之五；为慧依；与般若相资。", "般若波罗蜜（六度之导）": "六度之导；五度如盲，般若如导；与方便道合为二道。", "布施（四摄）": "四摄之一；与六度布施同源，专为化他。", "爱语": "四摄之二；对治恶口；与方便道相应。", "利行": "四摄之三；实利他行。", "同事": "四摄之四；平等摄化之极。", "四念处": "三十七道品之首；三解脱门、空慧之基。", "四正勤": "三十七道品之二；即精进波罗蜜之相。", "四神足": "三十七道品之三；定之资粮。", "五根": "三十七道品之四；与五力相资。", "五力": "三十七道品之五；五根之坚。", "七觉支": "三十七道品之六；菩提觉证之支。", "八正道": "三十七道品之七；摄戒定慧，正见即般若。", "般若道": "二道之一；与方便道双运；成一切智、道种智。", "方便道": "二道之一；与般若道双运；即方便波罗蜜。", "一切智": "三智之一；二道所成之初智；偏总相。", "道种智": "三智之二；菩萨所证；知差别门。", "一切种智": "三智之极；佛果所证；即无上菩提智。", "发菩提心": "菩萨行之始；与二道二智相系；回向所趣。", "回向": "与发心相承；使二道二智之果趣无上菩提。", "四谛": "佛法总纲；与十二因缘、八正道相连。", "十二因缘": "流转还灭之链；与四谛相摄；即空故可转。", "忏悔": "对治覆、恼等随烦恼；净障入道之要。", "念佛·易行道": "与难行道（六度）对；方便摄生；不违般若。", "破邪见": "对治恶见等根本烦恼；显中道，护正见。", "无上菩提": "论之宗趣；一切种智之果；二道所趣。", "涅槃": "与诸法实相、毕竟空相应；菩萨不住而利生。", "净土": "与念佛易行道相系；性空故唯心所现。", "不退转": "菩萨功德；与菩提、净土相资；易行道所赐。"};
+const GROUP_MAP = {"般若波罗蜜": "十八空", "诸法实相": "十八空", "毕竟空": "十八空", "内空": "十八空", "外空": "十八空", "内外空": "十八空", "空空": "十八空", "大空": "十八空", "第一义空": "十八空", "有为空": "十八空", "无为空": "十八空", "无始空": "十八空", "散空": "十八空", "性空": "十八空", "自相空": "十八空", "诸法空": "十八空", "不可得空": "十八空", "无法空": "十八空", "有法空": "十八空", "无法有法空": "十八空", "空解脱门": "三解脱门", "无相解脱门": "三解脱门", "无愿解脱门": "三解脱门", "布施波罗蜜": "六度", "持戒波罗蜜": "六度", "忍辱波罗蜜": "六度", "精进波罗蜜": "六度", "禅定波罗蜜": "六度", "般若波罗蜜（六度之导）": "六度", "布施（四摄）": "四摄", "爱语": "四摄", "利行": "四摄", "同事": "四摄", "四念处": "三十七道品", "四正勤": "三十七道品", "四神足": "三十七道品", "五根": "三十七道品", "五力": "三十七道品", "七觉支": "三十七道品", "八正道": "三十七道品", "般若道": "二道", "方便道": "二道", "一切智": "三智", "道种智": "三智", "一切种智": "三智", "发菩提心": "二道", "回向": "二道"};
+const GRAPH_META = [{"k": "twoWays", "t": "二道二智 · 修行总纲"}, {"k": "threeDoors", "t": "三解脱门 · 入实相"}, {"k": "sixParam", "t": "六度次第 · 般若为导"}, {"k": "fourSiddhanta", "t": "四悉檀 · 权实双运"}, {"k": "emptiness", "t": "十八空 · 毕竟空寂"}];
+const RELATION_GRAPHS = {"twoWays": "<svg viewBox=\"0 0 420 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif\"><defs><marker id=\"mw\" markerWidth=\"10\" markerHeight=\"10\" refX=\"8\" refY=\"3\" orient=\"auto\" markerUnits=\"strokeWidth\"><path d=\"M0,0 L8,3 L0,6 Z\" fill=\"#A1887F\"/></marker></defs><text x=\"210\" y=\"26\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#6B3410\">二道二智 · 菩萨修行总纲</text><rect x=\"40\" y=\"50\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2\"/><text x=\"115\" y=\"75\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">般若道（慧）</text><rect x=\"230\" y=\"50\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#C0392B\" stroke=\"#8B0000\" stroke-width=\"2\"/><text x=\"305\" y=\"75\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">方便道（悲）</text><text x=\"210\" y=\"120\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">双运不一不二 →</text><rect x=\"120\" y=\"135\" width=\"180\" height=\"38\" rx=\"9\" fill=\"#F5EDE0\" stroke=\"#A1887F\" stroke-width=\"2\"/><text x=\"210\" y=\"159\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-weight=\"700\" font-size=\"13\">次生三智</text><rect x=\"30\" y=\"200\" width=\"110\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"85\" y=\"223\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">一切智</text><rect x=\"155\" y=\"200\" width=\"110\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"210\" y=\"223\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">道种智</text><rect x=\"280\" y=\"200\" width=\"110\" height=\"36\" rx=\"8\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"335\" y=\"223\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"12.5\">一切种智</text><path d=\"M115,90 L210,135\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M305,90 L210,135\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M210,173 L85,200\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M210,173 L210,200\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M210,173 L335,200\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><rect x=\"110\" y=\"270\" width=\"200\" height=\"38\" rx=\"9\" fill=\"#2E7D32\" stroke=\"#1B5E20\" stroke-width=\"2\"/><text x=\"210\" y=\"294\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13\">无上菩提</text><path d=\"M335,236 L300,270\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/></svg>", "threeDoors": "<svg viewBox=\"0 0 420 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif\"><text x=\"210\" y=\"26\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#6B3410\">三解脱门 · 同入实相</text><rect x=\"40\" y=\"60\" width=\"120\" height=\"40\" rx=\"9\" fill=\"#F5EDE0\" stroke=\"#B8860B\" stroke-width=\"2\"/><text x=\"100\" y=\"85\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-weight=\"700\" font-size=\"13\">空解脱门</text><rect x=\"150\" y=\"60\" width=\"120\" height=\"40\" rx=\"9\" fill=\"#F5EDE0\" stroke=\"#B8860B\" stroke-width=\"2\"/><text x=\"210\" y=\"85\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-weight=\"700\" font-size=\"13\">无相解脱门</text><rect x=\"260\" y=\"60\" width=\"120\" height=\"40\" rx=\"9\" fill=\"#F5EDE0\" stroke=\"#B8860B\" stroke-width=\"2\"/><text x=\"320\" y=\"85\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-weight=\"700\" font-size=\"13\">无愿解脱门</text><text x=\"210\" y=\"140\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">三义同诠，门门入实 →</text><rect x=\"120\" y=\"160\" width=\"180\" height=\"42\" rx=\"10\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"210\" y=\"187\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">诸法实相（涅槃）</text><path d=\"M100,100 L180,160\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M210,100 L210,160\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M320,100 L240,160\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><text x=\"210\" y=\"240\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">离我、离相、离愿求</text><text x=\"210\" y=\"300\" text-anchor=\"middle\" font-size=\"13\" fill=\"#B8860B\" font-weight=\"700\">三门同证毕竟空</text></svg>", "sixParam": "<svg viewBox=\"0 0 420 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif\"><text x=\"210\" y=\"26\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#6B3410\">六波罗蜜 · 般若为导</text><rect x=\"20\" y=\"70\" width=\"62\" height=\"40\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"51\" y=\"94\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">布施</text><rect x=\"92\" y=\"70\" width=\"62\" height=\"40\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"123\" y=\"94\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">持戒</text><rect x=\"164\" y=\"70\" width=\"62\" height=\"40\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"195\" y=\"94\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">忍辱</text><rect x=\"236\" y=\"70\" width=\"62\" height=\"40\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"267\" y=\"94\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">精进</text><rect x=\"308\" y=\"70\" width=\"62\" height=\"40\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"339\" y=\"94\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">禅定</text><path d=\"M82,90 L92,90\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M154,90 L164,90\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M226,90 L236,90\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><path d=\"M298,90 L308,90\" stroke=\"#A1887F\" stroke-width=\"2\" marker-end=\"url(#mw)\"/><rect x=\"150\" y=\"150\" width=\"120\" height=\"46\" rx=\"10\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2.5\"/><text x=\"210\" y=\"172\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">般若（导）</text><path d=\"M339,110 L260,150\" stroke=\"#C0392B\" stroke-width=\"2\" stroke-dasharray=\"4 3\" marker-end=\"url(#mw)\"/><text x=\"330\" y=\"140\" text-anchor=\"middle\" font-size=\"11\" fill=\"#C0392B\">贯导前五度</text><text x=\"210\" y=\"235\" text-anchor=\"middle\" font-size=\"12.5\" fill=\"#6B5B45\">五度如盲，般若如导</text><text x=\"210\" y=\"265\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">无般若 → 但成人天福</text><text x=\"210\" y=\"290\" text-anchor=\"middle\" font-size=\"13\" fill=\"#B8860B\" font-weight=\"700\">三轮体空，方名波罗蜜</text></svg>", "fourSiddhanta": "<svg viewBox=\"0 0 420 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif\"><text x=\"210\" y=\"26\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#6B3410\">四悉檀 · 权实双运</text><rect x=\"40\" y=\"60\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"115\" y=\"85\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">世界悉檀</text><rect x=\"230\" y=\"60\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"305\" y=\"85\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">为人悉檀</text><rect x=\"40\" y=\"120\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"115\" y=\"145\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">对治悉檀</text><rect x=\"230\" y=\"120\" width=\"150\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"305\" y=\"145\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">第一义悉檀</text><text x=\"210\" y=\"200\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">前三为权巧，后一为实相</text><rect x=\"120\" y=\"215\" width=\"180\" height=\"40\" rx=\"10\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"210\" y=\"240\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13.5\">毕竟空 · 诸法实相</text><path d=\"M115,100 L210,215\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M305,100 L210,215\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M115,160 L210,215\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M305,160 L210,215\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><text x=\"210\" y=\"295\" text-anchor=\"middle\" font-size=\"12.5\" fill=\"#B8860B\" font-weight=\"700\">权实不二，归趣第一义</text></svg>", "emptiness": "<svg viewBox=\"0 0 420 360\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif\"><text x=\"210\" y=\"26\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#6B3410\">十八空 · 毕竟空寂</text><rect x=\"30\" y=\"55\" width=\"150\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"105\" y=\"78\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">内·外·内外空</text><rect x=\"195\" y=\"55\" width=\"100\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"245\" y=\"78\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">性空</text><rect x=\"305\" y=\"55\" width=\"90\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"350\" y=\"78\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">诸法空</text><rect x=\"30\" y=\"105\" width=\"150\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"105\" y=\"128\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">空·无相·无愿</text><rect x=\"195\" y=\"105\" width=\"100\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"245\" y=\"128\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">不可得空</text><rect x=\"305\" y=\"105\" width=\"90\" height=\"36\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"350\" y=\"128\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12\">无法·有法空</text><text x=\"210\" y=\"175\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">十八门层层遣执，归于一空 →</text><rect x=\"130\" y=\"190\" width=\"160\" height=\"44\" rx=\"10\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2.5\"/><text x=\"210\" y=\"217\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">毕竟空</text><path d=\"M105,141 L180,190\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M245,141 L220,190\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><path d=\"M350,141 L250,190\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/><rect x=\"120\" y=\"260\" width=\"180\" height=\"40\" rx=\"10\" fill=\"#2E7D32\" stroke=\"#1B5E20\" stroke-width=\"2\"/><text x=\"210\" y=\"285\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13\">中道实相（不二）</text><path d=\"M210,234 L210,260\" stroke=\"#A1887F\" stroke-width=\"1.5\" marker-end=\"url(#mw)\"/></svg>"};
+const GRAPH_TEXT = {"twoWays": "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "threeDoors": "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。", "sixParam": "此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。", "fourSiddhanta": "此图立四悉檀权实。世界、为人、对治三悉檀为权巧方便（随俗、随根、随病），第一义悉檀为实相（毕竟空）。佛说法不出此四，权为引物、实为了义，权实不二，终归第一义。图示三权向一实汇流。", "emptiness": "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。"};
+const RELATIONS = [{"t": "般若与方便不一不二", "body": "《大智度论》最吃紧的一句话，是『般若与方便（悲）不一不二』。般若说空，怕人落断灭、舍众生；方便说有（行六度、度众生），怕人执相、迷生死。\n论云：『般若波罗蜜多者，是一切诸方便之父』；又云菩萨以『无所得为方便』，行六度万行。意思是：正因为空，才没有负担地去行善；正因为要度众生，才不证涅槃而还入生死。二者如鸟双翼、车两轮，缺一则堕二边——偏般若成『焦芽败种』（独觉自了），偏方便成『有漏凡夫』（著相求福）。\n所以修行口诀是：以般若空故，认真地做、却不执着做；以方便悲故，不执着做、却认真地做。", "table": null}, {"t": "空有不二·中道实相", "body": "论主标『毕竟空』，却最忌『恶取空』。空不是『什么都没有』，而是『无自性、如幻缘起』。\n十八空里的『无法空、有法空、无法有法空』，正为双遣『断、常』二边：执『实有』是常见，执『实无』是断见，二者皆违实相。真正的空，是『有空不二』——因空故如幻因果宛然（不废修行），因有故缘起无实（不执实有）。\n这便是龙树《中论》的『八不』：不生不灭、不常不断、不一不异、不来不出。离四双八边，名为中道实相。读《大智度论》逢『空』字，皆当作此解。", "table": null}, {"t": "六度次第与般若为导", "body": "六波罗蜜有次第：先布施摄众生、持戒立轨范、忍辱受力、精进不退、禅定得静，最后以般若照空——前五为『事』，般若为『眼』。\n关键在『般若为导』：论以『五度如盲，般若如导』为喻。若布施而无般若，便成求福报的有漏善；若般若而无方便（悲），便成沈空滞寂的二乘。故菩萨行，必以空慧导于前五、以悲心行于万行，二利圆融。\n又六度可配三学：戒定慧摄后三度，布施忍辱精进通于戒定之间，般若即慧学。", "table": [["波罗蜜", "所对治", "摄属"], ["布施", "悭贪", "通戒定"], ["持戒", "恶业", "戒学"], ["忍辱", "瞋恚", "戒学"], ["精进", "懈怠", "通戒定"], ["禅定", "散乱", "定学"], ["般若", "愚痴·执相", "慧学"]]}, {"t": "二道二智与修行阶位", "body": "『二道二智』是菩萨行的总架构。二道：般若道（慧行，观空）、方便道（悲行，化他）。三智：一切智（知总相空，声闻缘觉分证）、道种智（知差别门，菩萨所证）、一切种智（总别双照，佛果圆满）。\n修行阶位上，凡夫由发菩提心入道，于二道双修；初地得无生法忍（近道种智），地地增上；至佛果一切种智圆满，即无上菩提。论以此判摄从凡至圣之全程，使学者知『今在何处、将趣何方』。", "table": null}, {"t": "四悉檀与说法善巧", "body": "佛说法不出四悉檀，龙树用以判摄一切教法：\n①世界悉檀——随世俗说因果善恶，令人生信（对初机）；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对现行烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空（究竟了义）。\n前三为『权』（方便引接），后一为『实』（真实归宿）。善知识说法，亦当先以世界/为人/对治接引，待根熟方以第一义直指。读经遇浅近语，知是权说，不执为实；遇了义语，直下承当。", "table": [["悉檀", "作用", "性质"], ["世界", "随俗生信", "权"], ["为人", "随根施教", "权"], ["对治", "克治烦恼", "权"], ["第一义", "直显实相", "实"]]}, {"t": "易行道与难行道", "body": "论卷九立『念佛三昧』为易行道：称念阿弥陀佛名号、系心一佛，以佛愿力摄持，疾得功德、不退转，不似『诸余法门』（六度万行）之勤苦难成（难行道）。\n这并非说念佛『浅易无用』，而是为『根钝障重、怯弱退心』的众生开一方便之门。易行与难行，一以佛力、一以自力，取向虽异，皆趣菩提，且与般若空慧不违——念而无念，心佛双泯。论主慈悲，不舍一人。", "table": null}, {"t": "大智度论在般若系的地位", "body": "《大智度论》是般若经典的『广释』，也是大乘中观体系的集大成之作。它上承《大品般若》的空慧，下启汉传三论、天台诸宗，与《中论》《百论》《十二门论》并峙。\n其特色在『广』：不以偈颂略说，而广引譬喻、问答、破立，把抽象的空义落到修行、政治、伦理的具体处。故后世以『论中之论』称之。读它，既是读般若，也是读一部『大乘菩萨道百科全书』。", "table": null}, {"t": "菩萨行总览（三门摄要）", "body": "菩萨万行，可摄为三要：一以般若为智（照空、破执），二以方便为悲（度生、万行），三以回向为舵（功德趣菩提、不滞小果）。\n六度是行体，四摄是化仪，三十七道品是资粮，二道二智是纲领，四悉檀是说法善巧，易行道是接引方便。法门虽多，不出『悲智双运、权实不二』八字。学者循此，由信入解、由解起行、由行证果，与大智度论同一脉络。", "table": null}];
+const VEIN_GRAPHS = {"般若与方便不一不二": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"40\" y=\"40\" width=\"150\" height=\"44\" rx=\"10\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2\"/><text x=\"115\" y=\"67\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">般若（空·智）</text><rect x=\"230\" y=\"40\" width=\"150\" height=\"44\" rx=\"10\" fill=\"#C0392B\" stroke=\"#8B0000\" stroke-width=\"2\"/><text x=\"305\" y=\"67\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">方便（有·悲）</text><text x=\"210\" y=\"120\" text-anchor=\"middle\" font-size=\"13\" fill=\"#6B5B45\">双运 → 不二</text><rect x=\"120\" y=\"140\" width=\"180\" height=\"44\" rx=\"10\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"210\" y=\"167\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">菩萨行（中道）</text><text x=\"210\" y=\"230\" text-anchor=\"middle\" font-size=\"12\" fill=\"#B8860B\">偏空→焦芽败种｜偏有→有漏凡夫</text></svg>", "空有不二·中道实相": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"40\" y=\"50\" width=\"140\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"110\" y=\"75\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"13\">常见（执有）</text><rect x=\"240\" y=\"50\" width=\"140\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"310\" y=\"75\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"13\">断见（执无）</text><text x=\"210\" y=\"135\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">十八空双遣 →</text><rect x=\"120\" y=\"150\" width=\"180\" height=\"44\" rx=\"10\" fill=\"#2E7D32\" stroke=\"#1B5E20\" stroke-width=\"2\"/><text x=\"210\" y=\"177\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">中道实相（毕竟空）</text><text x=\"210\" y=\"240\" text-anchor=\"middle\" font-size=\"12\" fill=\"#B8860B\">八不：不生不灭、不常不断…</text></svg>", "六度次第与般若为导": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"30\" y=\"60\" width=\"360\" height=\"44\" rx=\"10\" fill=\"#F5EDE0\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"210\" y=\"87\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"13\">布施→持戒→忍辱→精进→禅定（五度如盲）</text><rect x=\"120\" y=\"130\" width=\"180\" height=\"44\" rx=\"10\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2.5\"/><text x=\"210\" y=\"157\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"14\">般若（导·眼）</text><text x=\"210\" y=\"220\" text-anchor=\"middle\" font-size=\"12\" fill=\"#B8860B\">三轮体空，五度方名波罗蜜</text></svg>", "二道二智与修行阶位": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"30\" y=\"50\" width=\"160\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"110\" y=\"75\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">发菩提心（凡夫）</text><rect x=\"230\" y=\"50\" width=\"160\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"310\" y=\"75\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">二道双修</text><rect x=\"120\" y=\"130\" width=\"180\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"210\" y=\"155\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">得忍（初地·道种智）</text><rect x=\"140\" y=\"210\" width=\"140\" height=\"44\" rx=\"10\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"210\" y=\"237\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13\">佛果·一切种智</text></svg>", "四悉檀与说法善巧": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"40\" y=\"50\" width=\"150\" height=\"38\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"115\" y=\"74\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">世界悉檀</text><rect x=\"230\" y=\"50\" width=\"150\" height=\"38\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"305\" y=\"74\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">为人悉檀</text><rect x=\"40\" y=\"108\" width=\"150\" height=\"38\" rx=\"8\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"115\" y=\"132\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">对治悉檀</text><rect x=\"230\" y=\"108\" width=\"150\" height=\"38\" rx=\"8\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"305\" y=\"132\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"12.5\">第一义悉檀</text><text x=\"210\" y=\"200\" text-anchor=\"middle\" font-size=\"12.5\" fill=\"#B8860B\">三权汇一实 · 权实不二</text></svg>", "易行道与难行道": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"40\" y=\"60\" width=\"160\" height=\"42\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"120\" y=\"86\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"13\">难行道（六度）</text><rect x=\"230\" y=\"60\" width=\"160\" height=\"42\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"310\" y=\"86\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"13\">易行道（念佛）</text><text x=\"210\" y=\"150\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">自力 · 佛力，取向虽异</text><rect x=\"120\" y=\"170\" width=\"180\" height=\"44\" rx=\"10\" fill=\"#2E7D32\" stroke=\"#1B5E20\" stroke-width=\"2\"/><text x=\"210\" y=\"197\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13.5\">同趣无上菩提</text></svg>", "大智度论在般若系的地位": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"60\" y=\"55\" width=\"130\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"125\" y=\"80\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">《大品般若》</text><rect x=\"230\" y=\"55\" width=\"130\" height=\"40\" rx=\"9\" fill=\"#F6F1E7\" stroke=\"#A1887F\" stroke-width=\"1.5\"/><text x=\"295\" y=\"80\" text-anchor=\"middle\" fill=\"#3A2E1F\" font-size=\"12.5\">龙树·中观</text><text x=\"210\" y=\"140\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">广释集大成 ↓</text><rect x=\"100\" y=\"155\" width=\"220\" height=\"44\" rx=\"10\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2\"/><text x=\"210\" y=\"182\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13.5\">《大智度论》·论中之论</text><text x=\"210\" y=\"245\" text-anchor=\"middle\" font-size=\"12\" fill=\"#B8860B\">启汉传三论·天台诸宗</text></svg>", "菩萨行总览（三门摄要）": "<svg viewBox=\"0 0 420 300\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"30\" y=\"55\" width=\"110\" height=\"40\" rx=\"9\" fill=\"#B8860B\" stroke=\"#8B6914\" stroke-width=\"2\"/><text x=\"85\" y=\"80\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"12.5\">般若（智）</text><rect x=\"155\" y=\"55\" width=\"110\" height=\"40\" rx=\"9\" fill=\"#C0392B\" stroke=\"#8B0000\" stroke-width=\"2\"/><text x=\"210\" y=\"80\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"12.5\">方便（悲）</text><rect x=\"280\" y=\"55\" width=\"110\" height=\"40\" rx=\"9\" fill=\"#2E7D32\" stroke=\"#1B5E20\" stroke-width=\"2\"/><text x=\"335\" y=\"80\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"12.5\">回向（舵）</text><text x=\"210\" y=\"150\" text-anchor=\"middle\" font-size=\"12\" fill=\"#6B5B45\">六度·四摄·三十七道品 为体</text><rect x=\"90\" y=\"170\" width=\"240\" height=\"44\" rx=\"10\" fill=\"#8B6914\" stroke=\"#6B3410\" stroke-width=\"2\"/><text x=\"210\" y=\"197\" text-anchor=\"middle\" fill=\"#fff\" font-weight=\"700\" font-size=\"13.5\">悲智双运 · 权实不二</text></svg>"};
+const VEIN_TEXT = {"般若与方便不一不二": "本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。", "空有不二·中道实相": "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。", "六度次第与般若为导": "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。", "二道二智与修行阶位": "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。", "四悉檀与说法善巧": "本图立四悉檀权实。世界、为人、对治三为权，第一义为实；三权汇一实，权实不二。读经遇权语不执、遇实语直承。", "易行道与难行道": "本图对显易行难行。难行（六度）依自力，易行（念佛）依佛力；取向虽异，同趣菩提，且不违般若。为怯弱众生开方便门。", "大智度论在般若系的地位": "本图明论之地位。《大品般若》与龙树中观，经广释集为大智度论（论中之论），启汉传三论、天台诸宗，为大乘空慧之总枢。", "菩萨行总览（三门摄要）": "本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。"};
+const DRILL = {"论典纲要（6）": ["龙树菩萨", "鸠摩罗什", "摩诃般若波罗蜜经", "百卷结构与序品", "四悉檀", "大乘菩萨道·宗趣"], "般若（24）": ["般若波罗蜜", "诸法实相", "毕竟空", "内空", "外空", "内外空", "空空", "大空", "第一义空", "有为空", "无为空", "毕竟空", "无始空", "散空", "性空", "自相空", "诸法空", "不可得空", "无法空", "有法空", "无法有法空", "空解脱门", "无相解脱门", "无愿解脱门"], "菩萨行（17）": ["布施波罗蜜", "持戒波罗蜜", "忍辱波罗蜜", "精进波罗蜜", "禅定波罗蜜", "般若波罗蜜（六度之导）", "布施（四摄）", "爱语", "利行", "同事", "四念处", "四正勤", "四神足", "五根", "五力", "七觉支", "八正道"], "二道二智（7）": ["般若道", "方便道", "一切智", "道种智", "一切种智", "发菩提心", "回向"], "对治（5）": ["四谛", "十二因缘", "忏悔", "念佛·易行道", "破邪见"], "果德（4）": ["无上菩提", "涅槃", "净土", "不退转"], "十八空（18）": ["内空", "外空", "内外空", "空空", "大空", "第一义空", "有为空", "无为空", "毕竟空", "无始空", "散空", "性空", "自相空", "诸法空", "不可得空", "无法空", "有法空", "无法有法空"], "三解脱门（3）": ["空解脱门", "无相解脱门", "无愿解脱门"], "六度（6）": ["布施波罗蜜", "持戒波罗蜜", "忍辱波罗蜜", "精进波罗蜜", "禅定波罗蜜", "般若波罗蜜（六度之导）"], "四摄（4）": ["布施（四摄）", "爱语", "利行", "同事"], "三十七道品（7）": ["四念处", "四正勤", "四神足", "五根", "五力", "七觉支", "八正道"], "二道（2）": ["般若道", "方便道"], "三智（3）": ["一切智", "道种智", "一切种智"], "序品": ["百卷结构与序品"]};
+const KEYPOINTS = [{"t": "一、般若波罗蜜是到彼岸的智慧", "plain": "《大智度论》千头万绪，只归一个字——『般若』。它不是聪明、不是学问，而是『照见诸法实相、毕竟空寂』的无漏智慧，能把你从生死此岸渡到涅槃彼岸（波罗蜜）。比如你深夜为『别人怎么看我』辗转难眠，那股焦虑其实建立在『有一个实打的我、实打的评价』之上；般若就是那束光，照见『我』与『评价』都刹那生灭、缘起无实，焦虑便失去了支点。", "meta": "论以『般若为导』贯摄一切：六度中般若是眼（五度如盲），二道中般若是慧行。般若不是否定现象，而是点破现象的『来源与无自性』——知梦幻即不迷，知空故不舍悲。", "比喻": "像戴 VR 眼镜：你看到的虚拟世界逼真无比，摘下才发现空无所有——但摘下前的体验又确实发生。轮回就像不愿醒的长梦，般若就是那声『该醒了』。", "现代": "刷短视频停不下来，以为『外面真有那么好看的内容』——其实那是算法（缘）激活你识里种子现起的影像，内容本身并不实。般若不是戒手机，而是不再被『以为是真的』牵着走。"}, {"t": "二、毕竟空不是什么都没有", "plain": "论主标举『毕竟空』，最怕人听成『断灭空』（既然空，那杀人放火也没关系）。毕竟空是说：连『空』本身也空（空空），不执有一毫实法可得，却不妨碍如幻的缘起与悲愿。比如你努力做成一件事，毕竟空不否定『你努力了』这个缘起事实，只是否定『有一个永恒实有的成就者、实有的我慢』。", "meta": "空是『遣执』之药，不是『抹杀』之刀。因空故如幻因果宛然（更要谨因果），因有故缘起无实（更不执实有）。十八空层层遣遍计，最后的『无法有法空』双遣有无二边，即中道。", "比喻": "像看电影：银幕上角色中弹你心头一紧，散场才知本无此人——但放映的过程确实发生了。毕竟空是『知幻』，不是『砸影院』。", "现代": "看破名利空，反而更踏实地做人；知道职位、存款都缘起无实，就不必为它们的涨跌夜不能寐，却仍认真把事做好——这正是不堕两边的中道。"}, {"t": "三、二道二智：菩萨修行的导航仪", "plain": "论以『二道二智』为菩萨行总纲。二道：般若道（慧，观空）与方便道（悲，度生），如车两轮、鸟双翼，缺一则堕边——只修空成『焦芽败种』（独觉自了），只修善成『有漏凡夫』（着相求福）。二道圆修，次生三智：一切智（知总相空）、道种智（知差别门）、一切种智（佛果圆满）。", "meta": "这是从凡夫到佛陀的全程地图：发菩提心入道→二道双修→初地得无生法忍（近道种智）→佛果一切种智圆满。学者循此，知『今在何处、将趣何方』，不至于盲修。", "比喻": "像开车：般若道是导航仪（看清路线与实相），方便道是车轮（真去载客度人）；只有导航不动是摆设，只有车轮乱开是迷路。", "现代": "做公益或带团队，既要『以智慧复盘』（般若道），也要『先站到对方立场』（方便道）。只行动不观照，易好心办坏事；只空谈不做事，是纸上菩萨。"}, {"t": "四、六度以般若为导", "plain": "六波罗蜜有次第：布施、持戒、忍辱、精进、禅定，最后是般若。前五度是『事』，般若是『眼』。关键在『三轮体空』——施者、受者、所施皆不可得。你帮了人若暗暗记下『我做了多大善事』，这布施只成人天福；般若教你『做了像没做』。", "meta": "『五度如盲，般若如导』。无般若的前五度但成有漏善（求福报）；无方便的般若则沈空滞寂（二乘）。菩萨必以空慧导前五、以悲心行万行。", "比喻": "像夜里走路：前五度是脚，般若是灯。没灯乱走易摔（着相），有灯无脚不动（枯坐），灯脚兼备才到彼岸。", "现代": "认真做每件事，却不在心里给『我』记功；利益越大，越松手。职场里把『这项目我功劳最大』的念头，换成『因缘和合、众人成办』，内耗立减。"}, {"t": "五、四悉檀：说法与沟通的四种善巧", "plain": "龙树立『四悉檀』统摄一切说法方式：①世界悉檀（随俗说因果劝善，令人生信）；②各各为人悉檀（随根器说对治）；③对治悉檀（针对烦恼给克制法）；④第一义悉檀（直显实相毕竟空）。前三为权巧，后一为了义。", "meta": "读经遇浅近语，知是权说不执为实；遇了义语，直下承当。善知识说法亦当先以权巧接引，待根熟方以第一义直指。这是『权实不二』的活教材。", "比喻": "像医生开药：对世界悉檀是『先安抚』，对治悉檀是『对症下剂』，第一义是『拔除病根』。不会只给一味药治百人。", "现代": "管理、教学、育儿皆然：下属焦虑时先接住情绪（世界/为人悉檀），再导以方法（对治），最后才讲底层认知（第一义）。先共情，再说理，效果天差地别。"}, {"t": "六、三解脱门同入实相", "plain": "解脱生死有三门，义异而同归：空解脱门（破我法执）、无相解脱门（离一切相）、无愿解脱门（不希求三有果报）。你一被夸就飘、被贬就崩，正是没入空门；见美色就取『美相』，是没入无相门；贪来世福报、求三有，是没入无愿门。", "meta": "三门同诠『无住涅槃』，皆以般若为体。修三解脱门，不是说要『离开』世界，而是在世界中练『穿不透』——夸贬都穿不透我，相状都粘不住我。", "比喻": "像雨打荷叶：水珠滚过不留痕（空）、不沾形（无相）、不恋枝（无愿）。心若荷叶，境过无痕。", "现代": "每天挑一件『让我上头的事』，用三解脱门过一遍：这是谁在受（空）？这相好坏是真的吗（无相）？我非得怎样不可吗（无愿）？"}, {"t": "七、十八空层层遣执", "plain": "《大智度论》广说『十八空』，是破执的十八把刀：内空外空破我我所，性空显无自性（核心），诸法空总破一切法，不可得空显无所得，无法有法空双遣断常二边。你执着『这段关系必须永恒』，性空提醒它只是因缘聚散。", "meta": "十八空不是十八种『东西』，而是从十八个角度说同一件事——毕竟空。最后『空空』连『空见』也破，避免『恶取空』。读论逢『空』，皆作『遣执』解，不堕断灭。", "比喻": "像剥洋葱：一层层剥去『我的、实的、常的』，剥到芯发现本无实芯——但不是『什么都没有』，而是缘起宛然。", "现代": "争论『世界是唯物的还是有神的』没完，无法有法空让你退一步：连『有』『无』这两筐都空。团队里『激进/保守』之争，做那个指回『两边皆执』的人。"}, {"t": "八、念佛是给怯弱众生的扶手", "plain": "论卷九立『念佛三昧』为易行道：称念阿弥陀佛名号、系心一佛，以佛愿力摄持，疾得功德、不退转，不像六度万行（难行道）那般勤苦。这不是说念佛『浅』，而是为根钝障重、容易退心的人开一方便门。", "meta": "易行（佛力）与难行（自力）取向虽异，同趣菩提，且与般若空慧不违——念而无念，心佛双泯。论主慈悲，不舍一人；不要因自己根器而妄自菲薄，也不必轻慢简便法门。", "比喻": "像登山：难行道是徒手攀岩，易行道是坐缆车——缆车不丢人，能到顶就行；真猛士也可攀岩，但别笑坐缆车的。", "现代": "你烦恼太重、坐不住禅，硬修只会放弃。通勤、洗碗时默念『南无阿弥陀佛』，把碎片时间变修行；不轻视『简单易行』的法门，有依靠才容易坚持。"}, {"t": "九、四谛十二因缘是修行的骨架", "plain": "菩萨虽谈空，却不废对治。四谛（苦集灭道）是佛法总纲：顺观苦集知流转，逆修灭道知还灭。十二因缘（无明→行→…→老死）是流转还灭的链条——你刷手机停不下，正是『触→受→爱→取→有』的活标本。", "meta": "菩萨深观四谛而不自了，知苦愍生、断集修道、证灭不住。十二因缘即空故可转：在『触』处截断，就不滑到『取、有』。这是把抽象空义落到具体习惯的钥匙。", "比喻": "像追剧上瘾的循环：点开（触）→爽（受）→想更多（爱）→再点（取）→又耗两小时（有）。看清这条链，才能在『受』生爱前松手。", "现代": "反复在同一类关系里受伤，是只处理果不斩因（集）。写『复盘日记』找模式，用八正道改，苦自然淡——这就是四谛十二因缘的日常用法。"}, {"t": "十、果德虽空，却是悲愿所趣", "plain": "修因克果。论的归宿是无上菩提（一切种智）、涅槃（毕竟空寂之解脱）、净土（阿弥陀佛西方极乐，易行道所趣）、不退转。这些果德『虽空』——非实有可得；却是菩萨悲愿所趣、众生所归。菩萨『不住涅槃』而还度众生，正是悲智双运的极致。", "meta": "菩提是总目标，涅槃是惑尽寂静，净土是修行靠托，不退转是修行保障。四者皆以般若空慧为底，却不妨碍你认真发愿、认真回向——空有不二，方是真皈依。", "比喻": "像航海：菩提是目的地，涅槃是风平浪静的港湾，净土是中途补给的友港，不退转是永不沉没的船。知海本空，更要好好造船。", "现代": "你问『修行到底图啥』——图的是活成不被动摇的人。把每日善根回向众生与菩提，不居功，福报反而流转不息；找善知识、共修团体，在人间先建『小净土』。"}];
+const SCENARIOS = [{"t": "场景一 · 被批评时如何用般若对治", "situ": "周会上被领导当众点名『这方案不行』，你脸一热、心跳加速，手指悬在键盘上想立刻反驳，微信里也想怼回去。", "ana": "这一连串是『我执』在连锁：触（被指责的境）引受（苦受），想（贴上『他羞辱我』的标签）引思（想反击），第七识的『我』在旁煽风，瞋与忿、恼次第现行；同时你暗执『有一个实打的我在被否定』。其实『我』与『评价』都缘起无实。", "app": "1) 作意『暂停』——深呼吸，把注意力从『反击』转向『观察』；2) 修空解脱门——谁在受？被评的『我』本是五蕴假合、毕竟空；3) 修忍辱波罗蜜——耐怨害忍，知能骂所骂皆空；4) 修慈悲观——他当众失态也被烦恼驱使，挺可怜；5) 回向——此事亦回向菩提。", "ins": "愤怒就是『触—受—想—思—瞋』的连锁。你在『想』这环（贴『他辱我』标签）截断，怒涛就卷不走你。这正是般若道（观空）与方便道（忍辱化他）的双运。", "现代": "微信里一句『在吗』『你怎么这样』最容易引爆。试着把『对方在攻击我』重读成『对方此刻被烦恼带着跑』——这一念转换，就是末那从『执我』转向『平等』的练习，也是般若的日常用。"}, {"t": "场景二 · 做善事总想被看见怎么办", "situ": "你捐了款、帮了同事，忍不住发朋友圈『今日行善+1』，暗暗期待点赞；没反应就有点失落。", "ana": "这是布施波罗蜜缺了般若导——施后暗盼回报、暗生『我慢』，布施只成有漏人天福，不名波罗蜜。背后是『我做了善』的实执与爱求称赞（贪分位）。", "app": "1) 修三轮体空——施者、受者、所施皆不可得，做了像没做；2) 以无住相施为般若导，把『想被看见』的念头转为『回向众生』；3) 知功德亦空，不居功；4) 把善行当本分，而非筹码。", "ins": "布施的纯度，看『施完还记不记功』。真波罗蜜的布施，是给完就忘——不是假装，而是真的看清『没有实有的我在施、没有实有的功德可居』。", "现代": "职场里把『这项目我功劳最大』的念头换成『因缘和合、众人成办』，内耗立减。帮人别留『人情账』，给得越痛快，心越自由。"}, {"t": "场景三 · 关系必须永恒，失恋崩溃", "situ": "交往三年的伴侣提分手，你觉天塌了——『我们本来该一辈子』，哭到失眠、反复翻聊天记录。", "ana": "这是把『缘起和合』误认为『实有不变』。性空提醒：一切法无自性，关系也是因缘聚散，抓不住也不必抓。你执『必须永恒』，是常见；执『什么都没意义』，是断见——双双违实相。", "app": "1) 观性空——关系缘起无实自性，聚散皆空；2) 双遣有无（无法有法空）——不执常、不落断；3) 修慈悲观——对彼此都生悲悯，不怨不恋；4) 回向——愿彼此皆得安乐，菩提道上相遇。", "ins": "失恋的苦，一半来自『失去』，一半来自『我以为它该永恒』的执。性空不是让你冷漠，而是让你『珍惜缘起，不执自性』——爱过是真的，散了也是真的。", "现代": "离职、迁居、亲友疏远，皆可用性空减痛：珍视相处过的缘，但不把任何人事物钉成『必须永远在』。缘散时，合十说一声『感恩这一段』。"}, {"t": "场景四 · 修行中昏沉掉举、坐不住", "situ": "晚上打坐，要么眼皮打架昏昏欲睡（惛沉），要么脑子里跑『明天报表、中午那顿没吃好』，妄念纷飞（掉举）。", "ana": "惛沉让心暗昧提不起劲，掉举让心躁动放不下，二者皆障『定』。背后常站着不信、懈怠、放逸。这正是菩萨行里『禅定波罗蜜』要对治的——也是凡夫修行的必经关。", "app": "惛沉重：睁眼、经行、观想光明、冷水拍脸，把沉下的心提起；掉举重：系心呼吸、数息、不追念头。平时以不放逸、正念、正知守护。手机推送是当代掉举之首——通勤念佛、洗碗默念，把碎片时间变修行。", "ins": "昏沉掉举是定门前必过两关。认清楚它们是『病』不是『我』，对治就有力气；一旦轻安现前，你会尝到『心稳住』的甜头。", "现代": "睡前躺床上刷短视频，就是典型的『掉举＋放逸』——越刷越兴奋、越睡不着。把手机放客厅充电，是最朴素的『对治掉举、守护正念』。"}, {"t": "场景五 · 职场中的二道双运", "situ": "项目 deadline 临近，同事把锅甩给你，你想发火又怕撕破脸；领导画的饼和实际的坑让你又期待又怀疑。", "ana": "这里『别境五』能成事：欲（想做成）、胜解（认定目标）、念（记节点）、定（专注）、慧（排优先级）。但贪（图名利）、慢（看不起人）、疑（不信任）、嫉（妒被重用）也易现行。般若道（观空、不执果）与方便道（同事摄化、善巧沟通）正用得上。", "app": "用善法欲＋精进推工作；用无贪、无瞋、行舍处理人际，该沟通就沟通不憋忿；用慧排优先级不被情绪带节奏；遇甩锅，修忍+就事论事厘清责任。下班把工作群静音，是给心放假。", "ins": "职场就是道场。把别境五当工具、善十一当铠甲、烦恼当镜鉴——每次起情绪，先问『这是哪个所在动』，你就从『被卷的人』变成『看戏的人』。", "现代": "周会前花一分钟作意『今天我带着哪班心所上朝』——是想立功的勤，还是怕被比下去的嫉？带着觉知进会议室，同样的会心境不同。"}, {"t": "场景六 · 家庭关系中的忍辱与慈悲", "situ": "伴侣唠叨个没完，孩子写作业磨蹭，你嗓门越来越高，吼完又陷入『我怎么又这样』的自责（悔）。", "ana": "触到境引受（不悦），痴（执『事本该如我所想』）生瞋，忿、恼现行；吼完悔（恶作）追来，『吼—悔—再吼』循环。一家人恰好是把彼此烦恼放大的放大镜，也是菩萨行的练兵场。", "app": "先观『此境无常、亲子之缘难得』；用慈悲、忍辱替掉怒；用惭愧回看失控；用不害护住家人不被语言伤；把家当『忍辱堂』——谁惹你，谁就是送你练功的菩萨。上头先去阳台喘口气。", "ins": "家庭是烦恼的放大镜，也是菩萨行的练兵场。对境练心，才知道论里的空、忍、慈不是书上的名相，而是天天在饭桌上演的戏。", "现代": "辅导作业是当代父母的『忍辱第一关』。把『这题他怎么还不会』换成『他现在需要的是耐心不是答案』，就是把瞋换成悲的现成练习。"}, {"t": "场景七 · 刷手机停不下来（十二因缘活标本）", "situ": "本来只想看一眼微信，结果滑了半小时短视频，抬头发现时间没了，又懊恼又停不下。", "ana": "这正是十二因缘的活标本：notification 触境→受（爽）→爱（想更多）→取（点开）→有（又刷半小时）→生（明日照旧）。无明（不觉）为根，爱取为链，轮回就在指尖。", "app": "在『触』处截断：关推送、设限额；在『受』生爱前松手。修无愿解脱门——不希求『再刷一会儿』的甜头；修正念——滑之前先问『我为何点开』。把手机放远、用念佛/数息替代。", "ins": "十二因缘即空故可转：看清这条链，就能在任一环断开。最易下手的是『触』——不让通知轻易碰你，比事后懊恼省力百倍。", "现代": "把『算法推荐』当『无明缘行』的当代版：它激活你识里种子现起影像。看清『内容本身不实』，不是戒手机，而是不再被『以为是真的』牵着走。"}, {"t": "场景八 · 面对『一切皆空，那还要努力吗』", "situ": "朋友听你讲空，立刻反问：『既然什么都是空的，那我何必上班、何必做好人？躺平算了。』你一时语塞。", "ana": "这是把『毕竟空』听成『断灭空』的典型（恶取空）。空是遣执不是抹杀——因空故如幻因果宛然，更要谨因果；因有故缘起无实，更不执实有。躺平是落断见，与般若背道而驰。", "app": "1) 显『空有不二』——空破实执、有立因果，二者不悖；2) 以无法有法空双遣断常；3) 举喻：看电影散场知本无此人，但放映过程确实发生，你仍认真演；4) 引易行道——知空故不颓废，知有故不懈怠。", "ins": "辨空见是弘法第一关。真懂空的人，比谁都认真生活——因为他知道每件事都『缘起珍贵、无实可执』，所以更惜福、更肯做、更不纠结。", "现代": "看破名利空，反而更踏实地做人。知道职位存款缘起无实，就不必为涨跌夜不能寐，却仍把事做好——这正是不堕两边的中道，也是对『躺平质疑』最好的回答。"}, {"t": "场景九 · 说法劝人，对方听不进", "situ": "你想劝朋友少内耗、多修行，引经据典讲『无我』，对方一脸懵，甚至觉得你故弄玄虚。", "ana": "这是没用对『悉檀』。对方是初机，你直接抛第一义悉檀（毕竟空），如同给婴儿喂铁丸。佛说法尚且世界悉檀先安其心、为人悉檀随其根、对治悉檀克其病，待根熟方显实相。", "app": "1) 先用世界悉檀——说因果善恶，令他生信、安心；2) 用为人悉檀——看他根器（焦虑者给安心法，散乱者给专注法）；3) 用对治悉檀——针对他的具体烦恼给法；4) 根熟再以第一义直指。先共情，再说理。", "ins": "四悉檀是沟通的活教材。劝人不是『把真理砸过去』，而是『先接住人，再递梯子』。权实不二，归趣第一义，但路要一步步走。", "现代": "管理、教学、育儿、甚至写文案都通用：先接住对方情绪与水平（权），再导以正见（实）。朋友圈发修行文，也别一上来『无我空性』，先说人话。"}, {"t": "场景十 · 怕一个人修不下去（不退转与净土）", "situ": "你发心修行，但三天打鱼两天晒网，总怕『我这种根器，这辈子没戏』，越想越想放弃。", "ana": "这是退心，论中早有对治——『不退转』：菩萨至一定阶位（或念佛得无生法忍）便不再退堕；而易行道（念佛）更以佛力摄持，『即得不退』。你不是孤军，净土就是给你『有伴同行、有靠不退』的增上缘。", "app": "1) 发菩提心——把目标连到『利他成佛』大愿，动力更久；2) 回向——每日善根回向众生菩提，不虚耗；3) 依净土/善知识/共修——在人间先建『小净土』；4) 以易行道摄心（念佛），借佛力不退。孤军易退，有伴易进。", "ins": "修行怕退，是人之常情。论主慈悲，开易行道、说不退转，就是告诉你：不必硬撑，借靠托、借愿力、借团体，一样能到彼岸。", "现代": "找共修小组、关注正见博主、把通勤变成念佛时间——把『一个人扛』变成『有依托地走』。真正的不退，往往来自『有人同行』。"}];
+const EXAM = [{"type": "single", "cat": "论典纲要（释论之体）", "dh": "龙树菩萨", "q": "「龙树菩萨」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）"], "ans": 3, "exp": "「龙树菩萨」属于「论典纲要（释论之体）」板块。龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "龙树菩萨", "q": "下列关于「龙树菩萨」的描述，正确的一项是？", "opts": ["持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。", "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。"], "ans": 2, "exp": "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "龙树菩萨", "q": "下列法中，与「龙树菩萨」同属「论典纲要（释论之体）」板块的是？", "opts": ["无愿解脱门", "四神足", "摩诃般若波罗蜜经", "持戒波罗蜜"], "ans": 2, "exp": "「摩诃般若波罗蜜经」与「龙树菩萨」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "鸠摩罗什", "q": "「鸠摩罗什」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "论典纲要（释论之体）", "二道二智·发心回向", "修行对治·四谛十二因缘"], "ans": 1, "exp": "「鸠摩罗什」属于「论典纲要（释论之体）」板块。鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "鸠摩罗什", "q": "下列关于「鸠摩罗什」的描述，正确的一项是？", "opts": ["净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。", "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。"], "ans": 1, "exp": "鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "鸠摩罗什", "q": "下列法中，与「鸠摩罗什」同属「论典纲要（释论之体）」板块的是？", "opts": ["龙树菩萨", "利行", "同事", "内空"], "ans": 0, "exp": "「龙树菩萨」与「鸠摩罗什」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "摩诃般若波罗蜜经", "q": "「摩诃般若波罗蜜经」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "果德·涅槃净土", "论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）"], "ans": 2, "exp": "「摩诃般若波罗蜜经」属于「论典纲要（释论之体）」板块。《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "摩诃般若波罗蜜经", "q": "下列关于「摩诃般若波罗蜜经」的描述，正确的一项是？", "opts": ["不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。"], "ans": 2, "exp": "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "摩诃般若波罗蜜经", "q": "下列法中，与「摩诃般若波罗蜜经」同属「论典纲要（释论之体）」板块的是？", "opts": ["鸠摩罗什", "爱语", "不可得空", "诸法实相"], "ans": 0, "exp": "「鸠摩罗什」与「摩诃般若波罗蜜经」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "百卷结构与序品", "q": "「百卷结构与序品」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）", "二道二智·发心回向"], "ans": 1, "exp": "「百卷结构与序品」属于「论典纲要（释论之体）」板块。《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "百卷结构与序品", "q": "下列关于「百卷结构与序品」的描述，正确的一项是？", "opts": ["净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。"], "ans": 1, "exp": "《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "百卷结构与序品", "q": "下列法中，与「百卷结构与序品」同属「论典纲要（释论之体）」板块的是？", "opts": ["四悉檀", "布施波罗蜜", "大空", "精进波罗蜜"], "ans": 0, "exp": "「四悉檀」与「百卷结构与序品」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "四悉檀", "q": "「四悉檀」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "二道二智·发心回向", "修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）"], "ans": 0, "exp": "「四悉檀」属于「论典纲要（释论之体）」板块。『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "四悉檀", "q": "下列关于「四悉檀」的描述，正确的一项是？", "opts": ["『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。"], "ans": 0, "exp": "『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "四悉檀", "q": "下列法中，与「四悉檀」同属「论典纲要（释论之体）」板块的是？", "opts": ["百卷结构与序品", "诸法空", "持戒波罗蜜", "无始空"], "ans": 0, "exp": "「百卷结构与序品」与「四悉檀」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "大乘菩萨道·宗趣", "q": "「大乘菩萨道·宗趣」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "二道二智·发心回向", "修行对治·四谛十二因缘", "果德·涅槃净土"], "ans": 0, "exp": "「大乘菩萨道·宗趣」属于「论典纲要（释论之体）」板块。《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "大乘菩萨道·宗趣", "q": "下列关于「大乘菩萨道·宗趣」的描述，正确的一项是？", "opts": ["散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。", "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"], "ans": 2, "exp": "《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "大乘菩萨道·宗趣", "q": "下列法中，与「大乘菩萨道·宗趣」同属「论典纲要（释论之体）」板块的是？", "opts": ["利行", "禅定波罗蜜", "四悉檀", "毕竟空"], "ans": 2, "exp": "「四悉檀」与「大乘菩萨道·宗趣」同属「论典纲要（释论之体）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "般若波罗蜜", "q": "「般若波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）", "果德·涅槃净土", "般若波罗蜜（智慧核心）"], "ans": 3, "exp": "「般若波罗蜜」属于「般若波罗蜜（智慧核心）」板块。『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "般若波罗蜜", "q": "下列关于「般若波罗蜜」的描述，正确的一项是？", "opts": ["无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。", "道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。"], "ans": 2, "exp": "『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "般若波罗蜜", "q": "下列法中，与「般若波罗蜜」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["大乘菩萨道·宗趣", "持戒波罗蜜", "方便道", "毕竟空"], "ans": 3, "exp": "「毕竟空」与「般若波罗蜜」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法实相", "q": "「诸法实相」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "二道二智·发心回向", "修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）"], "ans": 3, "exp": "「诸法实相」属于「般若波罗蜜（智慧核心）」板块。『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法实相", "q": "下列关于「诸法实相」的描述，正确的一项是？", "opts": ["同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。"], "ans": 3, "exp": "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法实相", "q": "下列法中，与「诸法实相」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["无上菩提", "内外空", "念佛·易行道", "七觉支"], "ans": 1, "exp": "「内外空」与「诸法实相」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "「毕竟空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "二道二智·发心回向", "果德·涅槃净土", "修行对治·四谛十二因缘"], "ans": 0, "exp": "「毕竟空」属于「般若波罗蜜（智慧核心）」板块。『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "下列关于「毕竟空」的描述，正确的一项是？", "opts": ["无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。", "内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。"], "ans": 2, "exp": "『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "下列法中，与「毕竟空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["空解脱门", "忍辱波罗蜜", "大乘菩萨道·宗趣", "五力"], "ans": 0, "exp": "「空解脱门」与「毕竟空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内空", "q": "「内空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "二道二智·发心回向", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘"], "ans": 2, "exp": "「内空」属于「般若波罗蜜（智慧核心）」板块。内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内空", "q": "下列关于「内空」的描述，正确的一项是？", "opts": ["无始空：观生死轮回『无始』（无开端），众生往来无际，本空无实。破『我有始来』之执。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。"], "ans": 2, "exp": "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内空", "q": "下列法中，与「内空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["五根", "龙树菩萨", "散空", "同事"], "ans": 2, "exp": "「散空」与「内空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "外空", "q": "「外空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "二道二智·发心回向", "修行对治·四谛十二因缘"], "ans": 1, "exp": "「外空」属于「般若波罗蜜（智慧核心）」板块。外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "外空", "q": "下列关于「外空」的描述，正确的一项是？", "opts": ["回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。", "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。"], "ans": 1, "exp": "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "外空", "q": "下列法中，与「外空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["毕竟空", "般若波罗蜜（六度之导）", "摩诃般若波罗蜜经", "爱语"], "ans": 0, "exp": "「毕竟空」与「外空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内外空", "q": "「内外空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）", "论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）"], "ans": 1, "exp": "「内外空」属于「般若波罗蜜（智慧核心）」板块。内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内外空", "q": "下列关于「内外空」的描述，正确的一项是？", "opts": ["不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。", "内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。"], "ans": 2, "exp": "内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "内外空", "q": "下列法中，与「内外空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["不可得空", "布施（四摄）", "持戒波罗蜜", "八正道"], "ans": 0, "exp": "「不可得空」与「内外空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空空", "q": "「空空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "论典纲要（释论之体）", "二道二智·发心回向"], "ans": 1, "exp": "「空空」属于「般若波罗蜜（智慧核心）」板块。空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空空", "q": "下列关于「空空」的描述，正确的一项是？", "opts": ["四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。", "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。"], "ans": 1, "exp": "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空空", "q": "下列法中，与「空空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["散空", "一切种智", "爱语", "八正道"], "ans": 0, "exp": "「散空」与「空空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "大空", "q": "「大空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "二道二智·发心回向"], "ans": 2, "exp": "「大空」属于「般若波罗蜜（智慧核心）」板块。大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "大空", "q": "下列关于「大空」的描述，正确的一项是？", "opts": ["大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"], "ans": 0, "exp": "大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "大空", "q": "下列法中，与「大空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["道种智", "般若道", "无法有法空", "鸠摩罗什"], "ans": 2, "exp": "「无法有法空」与「大空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "第一义空", "q": "「第一义空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "果德·涅槃净土", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘"], "ans": 2, "exp": "「第一义空」属于「般若波罗蜜（智慧核心）」板块。第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "第一义空", "q": "下列关于「第一义空」的描述，正确的一项是？", "opts": ["无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。", "忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。"], "ans": 2, "exp": "第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "第一义空", "q": "下列法中，与「第一义空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["忍辱波罗蜜", "有法空", "百卷结构与序品", "忏悔"], "ans": 1, "exp": "「有法空」与「第一义空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有为空", "q": "「有为空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "果德·涅槃净土", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）"], "ans": 3, "exp": "「有为空」属于「般若波罗蜜（智慧核心）」板块。有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有为空", "q": "下列关于「有为空」的描述，正确的一项是？", "opts": ["『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。"], "ans": 2, "exp": "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有为空", "q": "下列法中，与「有为空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["四谛", "禅定波罗蜜", "性空", "八正道"], "ans": 2, "exp": "「性空」与「有为空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无为空", "q": "「无为空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）"], "ans": 1, "exp": "「无为空」属于「般若波罗蜜（智慧核心）」板块。无为空：观『无为法』（涅槃等不生灭者）亦空。不可执涅槃为实有可得，否则成『爱着涅槃』之病。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无为空", "q": "下列关于「无为空」的描述，正确的一项是？", "opts": ["无为空：观『无为法』（涅槃等不生灭者）亦空。不可执涅槃为实有可得，否则成『爱着涅槃』之病。", "五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。"], "ans": 0, "exp": "无为空：观『无为法』（涅槃等不生灭者）亦空。不可执涅槃为实有可得，否则成『爱着涅槃』之病。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无为空", "q": "下列法中，与「无为空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["内外空", "忍辱波罗蜜", "百卷结构与序品", "四神足"], "ans": 0, "exp": "「内外空」与「无为空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "「毕竟空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘"], "ans": 2, "exp": "「毕竟空」属于「般若波罗蜜（智慧核心）」板块。毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "下列关于「毕竟空」的描述，正确的一项是？", "opts": ["无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。"], "ans": 3, "exp": "毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "下列法中，与「毕竟空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["性空", "四神足", "大乘菩萨道·宗趣", "道种智"], "ans": 0, "exp": "「性空」与「毕竟空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无始空", "q": "「无始空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "论典纲要（释论之体）"], "ans": 1, "exp": "「无始空」属于「般若波罗蜜（智慧核心）」板块。无始空：观生死轮回『无始』（无开端），众生往来无际，本空无实。破『我有始来』之执。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无始空", "q": "下列关于「无始空」的描述，正确的一项是？", "opts": ["无始空：观生死轮回『无始』（无开端），众生往来无际，本空无实。破『我有始来』之执。", "一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。", "忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。", "忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。"], "ans": 0, "exp": "无始空：观生死轮回『无始』（无开端），众生往来无际，本空无实。破『我有始来』之执。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无始空", "q": "下列法中，与「无始空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["精进波罗蜜", "无相解脱门", "八正道", "摩诃般若波罗蜜经"], "ans": 1, "exp": "「无相解脱门」与「无始空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "散空", "q": "「散空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "般若波罗蜜（智慧核心）", "果德·涅槃净土"], "ans": 2, "exp": "「散空」属于「般若波罗蜜（智慧核心）」板块。散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "散空", "q": "下列关于「散空」的描述，正确的一项是？", "opts": ["无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。", "诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。"], "ans": 2, "exp": "散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "散空", "q": "下列法中，与「散空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["道种智", "爱语", "持戒波罗蜜", "诸法实相"], "ans": 3, "exp": "「诸法实相」与「散空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "性空", "q": "「性空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "般若波罗蜜（智慧核心）", "二道二智·发心回向", "修行对治·四谛十二因缘"], "ans": 1, "exp": "「性空」属于「般若波罗蜜（智慧核心）」板块。性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "性空", "q": "下列关于「性空」的描述，正确的一项是？", "opts": ["精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "散空：观五蕴和合假名『众生』，散坏时无一法实存。所谓人我，只是集散的相续。"], "ans": 2, "exp": "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "性空", "q": "下列法中，与「性空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["四悉檀", "诸法空", "一切种智", "净土"], "ans": 1, "exp": "「诸法空」与「性空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "自相空", "q": "「自相空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "论典纲要（释论之体）", "二道二智·发心回向", "般若波罗蜜（智慧核心）"], "ans": 3, "exp": "「自相空」属于「般若波罗蜜（智慧核心）」板块。自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "自相空", "q": "下列关于「自相空」的描述，正确的一项是？", "opts": ["同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。"], "ans": 3, "exp": "自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "自相空", "q": "下列法中，与「自相空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["七觉支", "无为空", "十二因缘", "方便道"], "ans": 1, "exp": "「无为空」与「自相空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法空", "q": "「诸法空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "般若波罗蜜（智慧核心）", "果德·涅槃净土"], "ans": 2, "exp": "「诸法空」属于「般若波罗蜜（智慧核心）」板块。诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法空", "q": "下列关于「诸法空」的描述，正确的一项是？", "opts": ["破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。"], "ans": 2, "exp": "诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法空", "q": "下列法中，与「诸法空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["四谛", "念佛·易行道", "无法空", "布施波罗蜜"], "ans": 2, "exp": "「无法空」与「诸法空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "不可得空", "q": "「不可得空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "二道二智·发心回向", "菩萨行（六度·四摄·三十七道品）", "修行对治·四谛十二因缘"], "ans": 0, "exp": "「不可得空」属于「般若波罗蜜（智慧核心）」板块。不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "不可得空", "q": "下列关于「不可得空」的描述，正确的一项是？", "opts": ["持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。"], "ans": 1, "exp": "不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "不可得空", "q": "下列法中，与「不可得空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["布施（四摄）", "一切智", "毕竟空", "一切种智"], "ans": 2, "exp": "「毕竟空」与「不可得空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法空", "q": "「无法空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土", "般若波罗蜜（智慧核心）"], "ans": 3, "exp": "「无法空」属于「般若波罗蜜（智慧核心）」板块。无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法空", "q": "下列关于「无法空」的描述，正确的一项是？", "opts": ["一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。", "无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。", "净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。"], "ans": 1, "exp": "无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法空", "q": "下列法中，与「无法空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["破邪见", "五力", "内空", "持戒波罗蜜"], "ans": 2, "exp": "「内空」与「无法空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有法空", "q": "「有法空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）"], "ans": 0, "exp": "「有法空」属于「般若波罗蜜（智慧核心）」板块。有法空：观『有（存在）』亦空。不可执『有』为实，堕于常见。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有法空", "q": "下列关于「有法空」的描述，正确的一项是？", "opts": ["忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。", "十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。", "精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "有法空：观『有（存在）』亦空。不可执『有』为实，堕于常见。"], "ans": 3, "exp": "有法空：观『有（存在）』亦空。不可执『有』为实，堕于常见。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "有法空", "q": "下列法中，与「有法空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["鸠摩罗什", "般若波罗蜜", "禅定波罗蜜", "利行"], "ans": 1, "exp": "「般若波罗蜜」与「有法空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法有法空", "q": "「无法有法空」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "果德·涅槃净土", "般若波罗蜜（智慧核心）", "论典纲要（释论之体）"], "ans": 2, "exp": "「无法有法空」属于「般若波罗蜜（智慧核心）」板块。无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法有法空", "q": "下列关于「无法有法空」的描述，正确的一项是？", "opts": ["『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。", "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。", "五力：信、精进、念、定、慧坚固成『力』，能破烦恼、不为所动。是五根之成熟。"], "ans": 1, "exp": "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无法有法空", "q": "下列法中，与「无法有法空」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["不退转", "道种智", "鸠摩罗什", "内外空"], "ans": 3, "exp": "「内外空」与「无法有法空」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空解脱门", "q": "「空解脱门」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "果德·涅槃净土"], "ans": 1, "exp": "「空解脱门」属于「般若波罗蜜（智慧核心）」板块。空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空解脱门", "q": "下列关于「空解脱门」的描述，正确的一项是？", "opts": ["第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。", "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。"], "ans": 1, "exp": "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空解脱门", "q": "下列法中，与「空解脱门」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["无相解脱门", "四正勤", "十二因缘", "忏悔"], "ans": 0, "exp": "「无相解脱门」与「空解脱门」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无相解脱门", "q": "「无相解脱门」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "论典纲要（释论之体）"], "ans": 0, "exp": "「无相解脱门」属于「般若波罗蜜（智慧核心）」板块。无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无相解脱门", "q": "下列关于「无相解脱门」的描述，正确的一项是？", "opts": ["无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。"], "ans": 0, "exp": "无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无相解脱门", "q": "下列法中，与「无相解脱门」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["破邪见", "摩诃般若波罗蜜经", "不可得空", "回向"], "ans": 2, "exp": "「不可得空」与「无相解脱门」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无愿解脱门", "q": "「无愿解脱门」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）", "论典纲要（释论之体）", "果德·涅槃净土"], "ans": 1, "exp": "「无愿解脱门」属于「般若波罗蜜（智慧核心）」板块。无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无愿解脱门", "q": "下列关于「无愿解脱门」的描述，正确的一项是？", "opts": ["无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。", "第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。"], "ans": 0, "exp": "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "无愿解脱门", "q": "下列法中，与「无愿解脱门」同属「般若波罗蜜（智慧核心）」板块的是？", "opts": ["性空", "四神足", "布施波罗蜜", "禅定波罗蜜"], "ans": 0, "exp": "「性空」与「无愿解脱门」同属「般若波罗蜜（智慧核心）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施波罗蜜", "q": "「布施波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "般若波罗蜜（智慧核心）", "论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）"], "ans": 3, "exp": "「布施波罗蜜」属于「菩萨行（六度·四摄·三十七道品）」板块。布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施波罗蜜", "q": "下列关于「布施波罗蜜」的描述，正确的一项是？", "opts": ["『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。", "有法空：观『有（存在）』亦空。不可执『有』为实，堕于常见。", "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"], "ans": 2, "exp": "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施波罗蜜", "q": "下列法中，与「布施波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["无始空", "毕竟空", "四正勤", "空解脱门"], "ans": 2, "exp": "「四正勤」与「布施波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "持戒波罗蜜", "q": "「持戒波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）", "修行对治·四谛十二因缘", "二道二智·发心回向"], "ans": 0, "exp": "「持戒波罗蜜」属于「菩萨行（六度·四摄·三十七道品）」板块。持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "持戒波罗蜜", "q": "下列关于「持戒波罗蜜」的描述，正确的一项是？", "opts": ["无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。", "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。"], "ans": 1, "exp": "持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "持戒波罗蜜", "q": "下列法中，与「持戒波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["内空", "般若波罗蜜", "净土", "利行"], "ans": 3, "exp": "「利行」与「持戒波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "忍辱波罗蜜", "q": "「忍辱波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）"], "ans": 3, "exp": "「忍辱波罗蜜」属于「菩萨行（六度·四摄·三十七道品）」板块。忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "忍辱波罗蜜", "q": "下列关于「忍辱波罗蜜」的描述，正确的一项是？", "opts": ["忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。", "内外空：合观内六入、外六入俱空，根境和合所生识亦空。能取所取皆不可得。", "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。", "诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。"], "ans": 0, "exp": "忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "忍辱波罗蜜", "q": "下列法中，与「忍辱波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["不退转", "七觉支", "不可得空", "十二因缘"], "ans": 1, "exp": "「七觉支」与「忍辱波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "精进波罗蜜", "q": "「精进波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "果德·涅槃净土", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向"], "ans": 2, "exp": "「精进波罗蜜」属于「菩萨行（六度·四摄·三十七道品）」板块。精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "精进波罗蜜", "q": "下列关于「精进波罗蜜」的描述，正确的一项是？", "opts": ["七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。"], "ans": 2, "exp": "精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "精进波罗蜜", "q": "下列法中，与「精进波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["无为空", "无相解脱门", "般若波罗蜜（六度之导）", "诸法空"], "ans": 2, "exp": "「般若波罗蜜（六度之导）」与「精进波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "禅定波罗蜜", "q": "「禅定波罗蜜」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土", "论典纲要（释论之体）"], "ans": 1, "exp": "「禅定波罗蜜」属于「菩萨行（六度·四摄·三十七道品）」板块。禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "禅定波罗蜜", "q": "下列关于「禅定波罗蜜」的描述，正确的一项是？", "opts": ["禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。"], "ans": 0, "exp": "禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "禅定波罗蜜", "q": "下列法中，与「禅定波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["一切种智", "鸠摩罗什", "净土", "布施波罗蜜"], "ans": 3, "exp": "「布施波罗蜜」与「禅定波罗蜜」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "般若波罗蜜（六度之导）", "q": "「般若波罗蜜（六度之导）」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "二道二智·发心回向", "修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）"], "ans": 3, "exp": "「般若波罗蜜（六度之导）」属于「菩萨行（六度·四摄·三十七道品）」板块。六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "般若波罗蜜（六度之导）", "q": "下列关于「般若波罗蜜（六度之导）」的描述，正确的一项是？", "opts": ["六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。", "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。", "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。"], "ans": 0, "exp": "六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "般若波罗蜜（六度之导）", "q": "下列法中，与「般若波罗蜜（六度之导）」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["五力", "一切智", "方便道", "十二因缘"], "ans": 0, "exp": "「五力」与「般若波罗蜜（六度之导）」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施（四摄）", "q": "「布施（四摄）」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "二道二智·发心回向", "果德·涅槃净土", "菩萨行（六度·四摄·三十七道品）"], "ans": 3, "exp": "「布施（四摄）」属于「菩萨行（六度·四摄·三十七道品）」板块。四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施（四摄）", "q": "下列关于「布施（四摄）」的描述，正确的一项是？", "opts": ["四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。", "四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。", "大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。", "『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。"], "ans": 1, "exp": "四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施（四摄）", "q": "下列法中，与「布施（四摄）」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["般若道", "有法空", "有为空", "四念处"], "ans": 3, "exp": "「四念处」与「布施（四摄）」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "爱语", "q": "「爱语」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）"], "ans": 2, "exp": "「爱语」属于「菩萨行（六度·四摄·三十七道品）」板块。爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "爱语", "q": "下列关于「爱语」的描述，正确的一项是？", "opts": ["爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。"], "ans": 0, "exp": "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "爱语", "q": "下列法中，与「爱语」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["四念处", "空解脱门", "空空", "方便道"], "ans": 0, "exp": "「四念处」与「爱语」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "利行", "q": "「利行」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土", "般若波罗蜜（智慧核心）"], "ans": 1, "exp": "「利行」属于「菩萨行（六度·四摄·三十七道品）」板块。利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "利行", "q": "下列关于「利行」的描述，正确的一项是？", "opts": ["『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。", "六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。"], "ans": 2, "exp": "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "利行", "q": "下列法中，与「利行」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["七觉支", "无法空", "自相空", "般若道"], "ans": 0, "exp": "「七觉支」与「利行」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "同事", "q": "「同事」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "二道二智·发心回向"], "ans": 1, "exp": "「同事」属于「菩萨行（六度·四摄·三十七道品）」板块。同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "同事", "q": "下列关于「同事」的描述，正确的一项是？", "opts": ["诸法空：总观一切法（有为、无为，世间、出世间）皆空。无一法可执为实。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "无相解脱门：不取一切相（离色声等诸相、离男女、一异等相），心住无相，解脱系缚。", "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。"], "ans": 3, "exp": "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "同事", "q": "下列法中，与「同事」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["般若波罗蜜（六度之导）", "不退转", "四谛", "忏悔"], "ans": 0, "exp": "「般若波罗蜜（六度之导）」与「同事」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四念处", "q": "「四念处」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "论典纲要（释论之体）"], "ans": 1, "exp": "「四念处」属于「菩萨行（六度·四摄·三十七道品）」板块。四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四念处", "q": "下列关于「四念处」的描述，正确的一项是？", "opts": ["六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。"], "ans": 2, "exp": "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四念处", "q": "下列法中，与「四念处」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["同事", "诸法实相", "内外空", "破邪见"], "ans": 0, "exp": "「同事」与「四念处」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四正勤", "q": "「四正勤」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土"], "ans": 2, "exp": "「四正勤」属于「菩萨行（六度·四摄·三十七道品）」板块。四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四正勤", "q": "下列关于「四正勤」的描述，正确的一项是？", "opts": ["四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。", "净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"], "ans": 0, "exp": "四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四正勤", "q": "下列法中，与「四正勤」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["发菩提心", "有为空", "无法有法空", "爱语"], "ans": 3, "exp": "「爱语」与「四正勤」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四神足", "q": "「四神足」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向"], "ans": 2, "exp": "「四神足」属于「菩萨行（六度·四摄·三十七道品）」板块。四神足：欲、勤、心、观四种『神通之足』，由之身心轻安、成就禅定神变。是定力增长的因。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四神足", "q": "下列关于「四神足」的描述，正确的一项是？", "opts": ["《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。", "四神足：欲、勤、心、观四种『神通之足』，由之身心轻安、成就禅定神变。是定力增长的因。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。"], "ans": 1, "exp": "四神足：欲、勤、心、观四种『神通之足』，由之身心轻安、成就禅定神变。是定力增长的因。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "四神足", "q": "下列法中，与「四神足」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["鸠摩罗什", "自相空", "方便道", "布施波罗蜜"], "ans": 3, "exp": "「布施波罗蜜」与「四神足」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五根", "q": "「五根」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）", "修行对治·四谛十二因缘"], "ans": 1, "exp": "「五根」属于「菩萨行（六度·四摄·三十七道品）」板块。五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五根", "q": "下列关于「五根」的描述，正确的一项是？", "opts": ["五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。", "禅定：心专注一境、离掉举惛沉。菩萨禅不唯自受乐，更发『无色定为化众生』之大用。"], "ans": 0, "exp": "五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五根", "q": "下列法中，与「五根」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["五力", "诸法空", "毕竟空", "忏悔"], "ans": 0, "exp": "「五力」与「五根」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五力", "q": "「五力」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘"], "ans": 0, "exp": "「五力」属于「菩萨行（六度·四摄·三十七道品）」板块。五力：信、精进、念、定、慧坚固成『力』，能破烦恼、不为所动。是五根之成熟。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五力", "q": "下列关于「五力」的描述，正确的一项是？", "opts": ["无为空：观『无为法』（涅槃等不生灭者）亦空。不可执涅槃为实有可得，否则成『爱着涅槃』之病。", "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "五力：信、精进、念、定、慧坚固成『力』，能破烦恼、不为所动。是五根之成熟。"], "ans": 3, "exp": "五力：信、精进、念、定、慧坚固成『力』，能破烦恼、不为所动。是五根之成熟。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "五力", "q": "下列法中，与「五力」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["诸法实相", "四念处", "摩诃般若波罗蜜经", "无为空"], "ans": 1, "exp": "「四念处」与「五力」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "七觉支", "q": "「七觉支」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向"], "ans": 2, "exp": "「七觉支」属于「菩萨行（六度·四摄·三十七道品）」板块。七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "七觉支", "q": "下列关于「七觉支」的描述，正确的一项是？", "opts": ["持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。"], "ans": 2, "exp": "七觉支：念、择法、精进、喜、轻安、定、舍七种觉证之支。是趋向菩提的正觉因素，重在『觉照平衡』。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "七觉支", "q": "下列法中，与「七觉支」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["无相解脱门", "有法空", "八正道", "无愿解脱门"], "ans": 2, "exp": "「八正道」与「七觉支」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "八正道", "q": "「八正道」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土", "二道二智·发心回向"], "ans": 1, "exp": "「八正道」属于「菩萨行（六度·四摄·三十七道品）」板块。八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "八正道", "q": "下列关于「八正道」的描述，正确的一项是？", "opts": ["无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。", "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。", "念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。"], "ans": 1, "exp": "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "八正道", "q": "下列法中，与「八正道」同属「菩萨行（六度·四摄·三十七道品）」板块的是？", "opts": ["四正勤", "念佛·易行道", "有法空", "般若波罗蜜"], "ans": 0, "exp": "「四正勤」与「八正道」同属「菩萨行（六度·四摄·三十七道品）」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "般若道", "q": "「般若道」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "菩萨行（六度·四摄·三十七道品）", "修行对治·四谛十二因缘", "二道二智·发心回向"], "ans": 3, "exp": "「般若道」属于「二道二智·发心回向」板块。般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "般若道", "q": "下列关于「般若道」的描述，正确的一项是？", "opts": ["无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。", "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。", "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。", "无法空：观『无（不存在）』亦空。不可执『无』为实，堕于断灭。"], "ans": 2, "exp": "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "般若道", "q": "下列法中，与「般若道」同属「二道二智·发心回向」板块的是？", "opts": ["方便道", "散空", "涅槃", "摩诃般若波罗蜜经"], "ans": 0, "exp": "「方便道」与「般若道」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "方便道", "q": "「方便道」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["论典纲要（释论之体）", "果德·涅槃净土", "二道二智·发心回向", "般若波罗蜜（智慧核心）"], "ans": 2, "exp": "「方便道」属于「二道二智·发心回向」板块。方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "方便道", "q": "下列关于「方便道」的描述，正确的一项是？", "opts": ["方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。", "大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。", "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。"], "ans": 0, "exp": "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "方便道", "q": "下列法中，与「方便道」同属「二道二智·发心回向」板块的是？", "opts": ["散空", "八正道", "布施波罗蜜", "回向"], "ans": 3, "exp": "「回向」与「方便道」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切智", "q": "「一切智」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）"], "ans": 0, "exp": "「一切智」属于「二道二智·发心回向」板块。一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切智", "q": "下列关于「一切智」的描述，正确的一项是？", "opts": ["一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。", "一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。"], "ans": 2, "exp": "一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切智", "q": "下列法中，与「一切智」同属「二道二智·发心回向」板块的是？", "opts": ["破邪见", "五力", "般若道", "四神足"], "ans": 2, "exp": "「般若道」与「一切智」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "道种智", "q": "「道种智」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "果德·涅槃净土"], "ans": 2, "exp": "「道种智」属于「二道二智·发心回向」板块。道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "道种智", "q": "下列关于「道种智」的描述，正确的一项是？", "opts": ["龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。", "道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。", "不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。", "毕竟空：观一切法从本以来毕竟空寂，无生无灭、无来无去。这是十八空的总归，与论所标『毕竟空』义同。"], "ans": 1, "exp": "道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "道种智", "q": "下列法中，与「道种智」同属「二道二智·发心回向」板块的是？", "opts": ["五力", "回向", "十二因缘", "毕竟空"], "ans": 1, "exp": "「回向」与「道种智」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切种智", "q": "「一切种智」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["二道二智·发心回向", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "论典纲要（释论之体）"], "ans": 0, "exp": "「一切种智」属于「二道二智·发心回向」板块。一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切种智", "q": "下列关于「一切种智」的描述，正确的一项是？", "opts": ["一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "利行：起身口意行利益众生，令得安乐、趋向善道。非空谈，而是实实际际的助他之行。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。"], "ans": 0, "exp": "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切种智", "q": "下列法中，与「一切种智」同属「二道二智·发心回向」板块的是？", "opts": ["内外空", "般若波罗蜜（六度之导）", "无相解脱门", "般若道"], "ans": 3, "exp": "「般若道」与「一切种智」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "发菩提心", "q": "「发菩提心」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "论典纲要（释论之体）"], "ans": 2, "exp": "「发菩提心」属于「二道二智·发心回向」板块。发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "发菩提心", "q": "下列关于「发菩提心」的描述，正确的一项是？", "opts": ["有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。", "发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。", "不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。"], "ans": 2, "exp": "发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "发菩提心", "q": "下列法中，与「发菩提心」同属「二道二智·发心回向」板块的是？", "opts": ["百卷结构与序品", "十二因缘", "般若道", "有为空"], "ans": 2, "exp": "「般若道」与「发菩提心」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "回向", "q": "「回向」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "果德·涅槃净土", "论典纲要（释论之体）"], "ans": 1, "exp": "「回向」属于「二道二智·发心回向」板块。回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "回向", "q": "下列关于「回向」的描述，正确的一项是？", "opts": ["回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。", "一切智：知一切『总相』（诸法共通之空无我相），是声闻、缘觉所证。偏知空寂，未遍知差别。", "精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "四摄之布施：以财、法、无畏摄受众生，令生信乐，堪受正法。与六度布施同体而异用——此处专为『化他』。"], "ans": 0, "exp": "回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "回向", "q": "下列法中，与「回向」同属「二道二智·发心回向」板块的是？", "opts": ["利行", "十二因缘", "五根", "般若道"], "ans": 3, "exp": "「般若道」与「回向」同属「二道二智·发心回向」板块。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "四谛", "q": "「四谛」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "果德·涅槃净土", "二道二智·发心回向"], "ans": 1, "exp": "「四谛」属于「修行对治·四谛十二因缘」板块。四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "四谛", "q": "下列关于「四谛」的描述，正确的一项是？", "opts": ["不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。"], "ans": 3, "exp": "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "四谛", "q": "下列法中，与「四谛」同属「修行对治·四谛十二因缘」板块的是？", "opts": ["忏悔", "八正道", "自相空", "诸法实相"], "ans": 0, "exp": "「忏悔」与「四谛」同属「修行对治·四谛十二因缘」板块。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "十二因缘", "q": "「十二因缘」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "果德·涅槃净土", "论典纲要（释论之体）", "修行对治·四谛十二因缘"], "ans": 3, "exp": "「十二因缘」属于「修行对治·四谛十二因缘」板块。十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "十二因缘", "q": "下列关于「十二因缘」的描述，正确的一项是？", "opts": ["十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。", "五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。"], "ans": 0, "exp": "十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "十二因缘", "q": "下列法中，与「十二因缘」同属「修行对治·四谛十二因缘」板块的是？", "opts": ["八正道", "布施波罗蜜", "四谛", "持戒波罗蜜"], "ans": 2, "exp": "「四谛」与「十二因缘」同属「修行对治·四谛十二因缘」板块。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "忏悔", "q": "「忏悔」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "果德·涅槃净土", "二道二智·发心回向"], "ans": 0, "exp": "「忏悔」属于「修行对治·四谛十二因缘」板块。忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "忏悔", "q": "下列关于「忏悔」的描述，正确的一项是？", "opts": ["忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。", "《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。"], "ans": 0, "exp": "忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "忏悔", "q": "下列法中，与「忏悔」同属「修行对治·四谛十二因缘」板块的是？", "opts": ["发菩提心", "一切智", "回向", "十二因缘"], "ans": 3, "exp": "「十二因缘」与「忏悔」同属「修行对治·四谛十二因缘」板块。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "念佛·易行道", "q": "「念佛·易行道」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["菩萨行（六度·四摄·三十七道品）", "修行对治·四谛十二因缘", "果德·涅槃净土", "论典纲要（释论之体）"], "ans": 1, "exp": "「念佛·易行道」属于「修行对治·四谛十二因缘」板块。念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "念佛·易行道", "q": "下列关于「念佛·易行道」的描述，正确的一项是？", "opts": ["《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。", "空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。", "念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。"], "ans": 3, "exp": "念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "念佛·易行道", "q": "下列法中，与「念佛·易行道」同属「修行对治·四谛十二因缘」板块的是？", "opts": ["五力", "大乘菩萨道·宗趣", "鸠摩罗什", "四谛"], "ans": 3, "exp": "「四谛」与「念佛·易行道」同属「修行对治·四谛十二因缘」板块。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "破邪见", "q": "「破邪见」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["般若波罗蜜（智慧核心）", "修行对治·四谛十二因缘", "果德·涅槃净土", "二道二智·发心回向"], "ans": 1, "exp": "「破邪见」属于「修行对治·四谛十二因缘」板块。破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "破邪见", "q": "下列关于「破邪见」的描述，正确的一项是？", "opts": ["忏悔：发露已过、厌离恶法、誓不更作，以净除业障。论有『忏悔品』，显忏悔能灭罪、生善、入道。", "破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。"], "ans": 1, "exp": "破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "破邪见", "q": "下列法中，与「破邪见」同属「修行对治·四谛十二因缘」板块的是？", "opts": ["大乘菩萨道·宗趣", "念佛·易行道", "内外空", "七觉支"], "ans": 1, "exp": "「念佛·易行道」与「破邪见」同属「修行对治·四谛十二因缘」板块。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "无上菩提", "q": "「无上菩提」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "修行对治·四谛十二因缘"], "ans": 0, "exp": "「无上菩提」属于「果德·涅槃净土」板块。无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "无上菩提", "q": "下列关于「无上菩提」的描述，正确的一项是？", "opts": ["破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。", "回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。"], "ans": 1, "exp": "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "无上菩提", "q": "下列法中，与「无上菩提」同属「果德·涅槃净土」板块的是？", "opts": ["四神足", "涅槃", "同事", "忍辱波罗蜜"], "ans": 1, "exp": "「涅槃」与「无上菩提」同属「果德·涅槃净土」板块。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "涅槃", "q": "「涅槃」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "般若波罗蜜（智慧核心）", "果德·涅槃净土"], "ans": 3, "exp": "「涅槃」属于「果德·涅槃净土」板块。涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "涅槃", "q": "下列关于「涅槃」的描述，正确的一项是？", "opts": ["涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。", "『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "自相空：不仅无共通自性，连一一法的『个别相状』（自相）亦空。总相空、别相亦空。"], "ans": 0, "exp": "涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "涅槃", "q": "下列法中，与「涅槃」同属「果德·涅槃净土」板块的是？", "opts": ["百卷结构与序品", "无上菩提", "无相解脱门", "有法空"], "ans": 1, "exp": "「无上菩提」与「涅槃」同属「果德·涅槃净土」板块。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "净土", "q": "「净土」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["果德·涅槃净土", "修行对治·四谛十二因缘", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向"], "ans": 0, "exp": "「净土」属于「果德·涅槃净土」板块。净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "净土", "q": "下列关于「净土」的描述，正确的一项是？", "opts": ["《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。", "净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。"], "ans": 3, "exp": "净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "净土", "q": "下列法中，与「净土」同属「果德·涅槃净土」板块的是？", "opts": ["无上菩提", "四悉檀", "毕竟空", "外空"], "ans": 0, "exp": "「无上菩提」与「净土」同属「果德·涅槃净土」板块。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "不退转", "q": "「不退转」在《大智度论》互动学习 app 中归属于哪个板块（门类）？", "opts": ["修行对治·四谛十二因缘", "论典纲要（释论之体）", "果德·涅槃净土", "菩萨行（六度·四摄·三十七道品）"], "ans": 2, "exp": "「不退转」属于「果德·涅槃净土」板块。不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "不退转", "q": "下列关于「不退转」的描述，正确的一项是？", "opts": ["不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。"], "ans": 0, "exp": "不退转：菩萨修行至一定阶位（如初地以上，或念佛得无生法忍），于佛道不再退堕。是修行重要的保障。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "不退转", "q": "下列法中，与「不退转」同属「果德·涅槃净土」板块的是？", "opts": ["涅槃", "般若波罗蜜（六度之导）", "忏悔", "摩诃般若波罗蜜经"], "ans": 0, "exp": "「涅槃」与「不退转」同属「果德·涅槃净土」板块。"}, {"type": "multi", "cat": "论典纲要（释论之体）", "dh": "龙树菩萨", "q": "下列关于「龙树菩萨」的表述，正确的有（多选）？", "opts": ["空空：连『空』这一执着也要空掉。若执『一切皆空』为实，便成『恶取空』；空空正破此执。", "《大智度论》是龙树为《大品般若经》所作的广释。他以『毕竟空』融摄一切法门，既说空义不堕断灭，又显方便不废修行，是大乘菩萨道的总枢要。", "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。", "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。"], "ans": [1, 2], "exp": "正确项：龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。；《大智度论》是龙树为《大品般若经》所作的广释。他以『毕竟空』融摄一切法门，既说空义不堕断灭，又显方便不废修行，是大乘菩萨道的总枢要。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "龙树菩萨", "q": "关于「龙树菩萨」的关联与定位，下列说法正确的是？", "opts": ["流转还灭之链；与四谛相摄；即空故可转。", "龙树为论主，罗什为译者；论依《大品般若》而造，以毕竟空摄一切法门，为后世中观学派之源。", "三十七道品之四；与五力相资。", "三十七道品之五；五根之坚。"], "ans": 1, "exp": "龙树为论主，罗什为译者；论依《大品般若》而造，以毕竟空摄一切法门，为后世中观学派之源。"}, {"type": "multi", "cat": "论典纲要（释论之体）", "dh": "鸠摩罗什", "q": "下列关于「鸠摩罗什」的表述，正确的有（多选）？", "opts": ["鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。", "四念处：观身不净、观受是苦、观心无常、观法无我。是三十七道品之初门，对治净、乐、常、我四颠倒。", "《大智度论》百卷即罗什所译。他译经讲究『达意』而非字比，使深奥的空义以流畅汉文呈现，千载之下仍为学人奉为圭臬。", "外空：观『外六入』（色声香味触法六境）空，外在境界无实自体，唯识所现、缘起无性。"], "ans": [0, 2], "exp": "正确项：鸠摩罗什（344—413）生于龟兹，博通大小乘，后于后秦长安逍遥园译经。他译出《大智度论》《摩诃般若波罗蜜经》《中论》《百论》《十二门论》等，文质兼备，对华文般若、中观典籍的成立有决定性影响。；《大智度论》百卷即罗什所译。他译经讲究『达意』而非字比，使深奥的空义以流畅汉文呈现，千载之下仍为学人奉为圭臬。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "鸠摩罗什", "q": "关于「鸠摩罗什」的关联与定位，下列说法正确的是？", "opts": ["六度之五；为慧依；与般若相资。", "罗什译《大智度论》百卷，并译所释《摩诃般若波罗蜜经》；其译笔奠定汉传般若、中观之基。", "流转还灭之链；与四谛相摄；即空故可转。", "论为《摩诃般若波罗蜜经》之释；经说『般若波罗蜜』，论广演其义，二者体用相成。"], "ans": 1, "exp": "罗什译《大智度论》百卷，并译所释《摩诃般若波罗蜜经》；其译笔奠定汉传般若、中观之基。"}, {"type": "multi", "cat": "论典纲要（释论之体）", "dh": "摩诃般若波罗蜜经", "q": "下列关于「摩诃般若波罗蜜经」的表述，正确的有（多选）？", "opts": ["念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。", "该经广说菩萨般若行：观诸法空、修六波罗蜜、严净佛土、成就众生。罗什另译二十七卷本，即《大品》；玄奘于《大般若经》第二会重译。论依此经逐品作释。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。"], "ans": [1, 2], "exp": "正确项：《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。；该经广说菩萨般若行：观诸法空、修六波罗蜜、严净佛土、成就众生。罗什另译二十七卷本，即《大品》；玄奘于《大般若经》第二会重译。论依此经逐品作释。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "摩诃般若波罗蜜经", "q": "关于「摩诃般若波罗蜜经」的关联与定位，下列说法正确的是？", "opts": ["论为《摩诃般若波罗蜜经》之释；经说『般若波罗蜜』，论广演其义，二者体用相成。", "三十七道品之四；与五力相资。", "与发心相承；使二道二智之果趣无上菩提。", "实相为般若所证；以十八空遣遍计，以三解脱门入无相，皆趣此诸法实相。"], "ans": 0, "exp": "论为《摩诃般若波罗蜜经》之释；经说『般若波罗蜜』，论广演其义，二者体用相成。"}, {"type": "multi", "cat": "论典纲要（释论之体）", "dh": "四悉檀", "q": "下列关于「四悉檀」的表述，正确的有（多选）？", "opts": ["精进：于断恶修善勇悍不退。菩萨精进通于二利，披甲、摄善、利乐、不退四相具足。", "前三檀为方便（权），后一檀为实（实相）。佛说法不出此四，闻者根熟则入第一义。论卷一即以四悉檀判摄全体佛法。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。"], "ans": [1, 3], "exp": "正确项：『悉檀』意为『成就、实』。龙树立四悉檀统摄如来一切说法：①世界悉檀——随世俗谛说因果、善恶，令人生信；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空。；前三檀为方便（权），后一檀为实（实相）。佛说法不出此四，闻者根熟则入第一义。论卷一即以四悉檀判摄全体佛法。"}, {"type": "single", "cat": "论典纲要（释论之体）", "dh": "四悉檀", "q": "关于「四悉檀」的关联与定位，下列说法正确的是？", "opts": ["论释经以序品为纲；序品所举五眼、神通、四悉檀等，皆于前三十余卷广释，为全论骨架。", "四悉檀为论之判教总纲：世界、为人、对治三为权巧，第一义为实相；权实双运，归趣毕竟空。", "六度之导；与论首『般若波罗蜜』同体；与方便道合为二道。", "六度之三；对治瞋；与般若空慧相应（观能骂所骂皆空）。"], "ans": 1, "exp": "四悉檀为论之判教总纲：世界、为人、对治三为权巧，第一义为实相；权实双运，归趣毕竟空。"}, {"type": "multi", "cat": "般若波罗蜜（智慧核心）", "dh": "般若波罗蜜", "q": "下列关于「般若波罗蜜」的表述，正确的有（多选）？", "opts": ["论中处处显般若：它不是世智辩聪，而是『无所得』之智——知一切法空、无我、不可得，而悲心不舍众生。般若本身就是最大的方便。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。", "『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。"], "ans": [0, 3], "exp": "正确项：『般若』是照见诸法实相的智慧，『波罗蜜』是『到彼岸』。般若波罗蜜即以此智慧渡过生死此岸、到达涅槃彼岸。它是六度之导，所谓『五度如盲，般若如导』。；论中处处显般若：它不是世智辩聪，而是『无所得』之智——知一切法空、无我、不可得，而悲心不舍众生。般若本身就是最大的方便。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "般若波罗蜜", "q": "关于「般若波罗蜜」的关联与定位，下列说法正确的是？", "opts": ["般若为六度之导（五度如盲，般若如导）；与方便波罗蜜不一不二，合为菩萨二道。十八空、三解脱门皆般若之开演。", "三十七道品之二；即精进波罗蜜之相。", "十八空之一；破空间实执。", "四摄之一；与六度布施同源，专为化他。"], "ans": 0, "exp": "般若为六度之导（五度如盲，般若如导）；与方便波罗蜜不一不二，合为菩萨二道。十八空、三解脱门皆般若之开演。"}, {"type": "multi", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法实相", "q": "下列关于「诸法实相」的表述，正确的有（多选）？", "opts": ["『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。", "论云：『诸法实相，不生不灭，不常不断，不一不异，不来不出』（八不）。实相虽离言，却是一切法之本来面目，般若即如其实际而见。", "《摩诃般若波罗蜜经》（意译『大品般若』，二万五千颂）是《大智度论》所注释的根本经典。『摩诃』大，『般若』智慧，『波罗蜜』到彼岸——合言『乘大智慧到解脱彼岸』。", "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。"], "ans": [0, 1], "exp": "正确项：『诸法实相』是般若所证的真理：一切法缘起无生、毕竟空寂、不生不灭、不垢不净、不增不减。它离一切名言戏论，非有非无、非一非异。；论云：『诸法实相，不生不灭，不常不断，不一不异，不来不出』（八不）。实相虽离言，却是一切法之本来面目，般若即如其实际而见。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "诸法实相", "q": "关于「诸法实相」的关联与定位，下列说法正确的是？", "opts": ["十八空之一；即实相空，为究竟。", "二道之一；与般若道双运；即方便波罗蜜。", "实相为般若所证；以十八空遣遍计，以三解脱门入无相，皆趣此诸法实相。", "二道之一；与方便道双运；成一切智、道种智。"], "ans": 2, "exp": "实相为般若所证；以十八空遣遍计，以三解脱门入无相，皆趣此诸法实相。"}, {"type": "multi", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "下列关于「毕竟空」的表述，正确的有（多选）？", "opts": ["『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。", "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。", "毕竟空不是断灭空、不是虚无，而是『有空不二』——虽见万法无自性，却不妨碍如幻缘起、悲愿度生。论主以毕竟空破一切戏论，归中不二。", "有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。"], "ans": [0, 2], "exp": "正确项：『毕竟空』是《大智度论》标举的空义：不仅空去烦恼、空去众生，连『空』本身也空（空空），不执有一毫实法可得，故名毕竟。；毕竟空不是断灭空、不是虚无，而是『有空不二』——虽见万法无自性，却不妨碍如幻缘起、悲愿度生。论主以毕竟空破一切戏论，归中不二。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "毕竟空", "q": "关于「毕竟空」的关联与定位，下列说法正确的是？", "opts": ["毕竟空摄十八空之极，与三解脱门相应；不堕断常二边，即中道实相。", "十八空之一；即实相空，为究竟。", "论之宗趣；一切种智之果；二道所趣。", "三十七道品之七；摄戒定慧，正见即般若。"], "ans": 0, "exp": "毕竟空摄十八空之极，与三解脱门相应；不堕断常二边，即中道实相。"}, {"type": "multi", "cat": "般若波罗蜜（智慧核心）", "dh": "空解脱门", "q": "下列关于「空解脱门」的表述，正确的有（多选）？", "opts": ["《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。", "修空门，破我法二执，心得解脱。", "六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。"], "ans": [1, 3], "exp": "正确项：空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。；修空门，破我法二执，心得解脱。"}, {"type": "single", "cat": "般若波罗蜜（智慧核心）", "dh": "空解脱门", "q": "关于「空解脱门」的关联与定位，下列说法正确的是？", "opts": ["四摄之一；与六度布施同源，专为化他。", "与诸法实相、毕竟空相应；菩萨不住而利生。", "三解脱门之一；与无相、无愿同入实相。", "论释经以序品为纲；序品所举五眼、神通、四悉檀等，皆于前三十余卷广释，为全论骨架。"], "ans": 2, "exp": "三解脱门之一；与无相、无愿同入实相。"}, {"type": "multi", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施波罗蜜", "q": "下列关于「布施波罗蜜」的表述，正确的有（多选）？", "opts": ["破邪见：以般若破我见、边见（断常）、邪见、有无见等。论处处破外道与凡夫妄执，显中道实相。", "布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。", "论中强调『三轮体空』施——施者、受者、所施皆空，无住相施方名波罗蜜。", "空解脱门：观诸法空、无我我所，从此门脱烦恼缚。它是三解脱门之首，与『空』相应。"], "ans": [1, 2], "exp": "正确项：布施：以财物、无畏、法三种布施利益众生，破悭贪、长慈悲。布施是度生的第一步，亦能速积福德、近佛道。；论中强调『三轮体空』施——施者、受者、所施皆空，无住相施方名波罗蜜。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "布施波罗蜜", "q": "关于「布施波罗蜜」的关联与定位，下列说法正确的是？", "opts": ["十八空之一；空假合聚散。", "六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "六度之导；与论首『般若波罗蜜』同体；与方便道合为二道。", "三十七道品之四；与五力相资。"], "ans": 1, "exp": "六度之首；与三轮体空相应，般若为导；四摄中亦有布施。"}, {"type": "multi", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "持戒波罗蜜", "q": "下列关于「持戒波罗蜜」的表述，正确的有（多选）？", "opts": ["五根：信、精进、念、定、慧五种『善法之根』，能生一切无漏功德，如树有根则生长。", "持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。", "戒为定慧之基；持戒清净，则心安稳、堪能入定。", "大空：观十方、四维、上下等『方所』空。空间方位是假名分位，无实方体；以方空显法界无碍。"], "ans": [1, 2], "exp": "正确项：持戒：护身口意、防非止恶，并摄善法、饶益众生。菩萨戒以『饶益有情』为体，不同于但求自了的小乘戒。；戒为定慧之基；持戒清净，则心安稳、堪能入定。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "持戒波罗蜜", "q": "关于「持戒波罗蜜」的关联与定位，下列说法正确的是？", "opts": ["六度之二；为定慧基；与忍辱、精进相连。", "三十七道品之七；摄戒定慧，正见即般若。", "六度之三；对治瞋；与般若空慧相应（观能骂所骂皆空）。", "实相为般若所证；以十八空遣遍计，以三解脱门入无相，皆趣此诸法实相。"], "ans": 0, "exp": "六度之二；为定慧基；与忍辱、精进相连。"}, {"type": "multi", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "忍辱波罗蜜", "q": "下列关于「忍辱波罗蜜」的表述，正确的有（多选）？", "opts": ["不可得空：求一切法『得』不可得。因空故，无有一法可执取、可成就。", "忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。", "忍辱是对治瞋毒的利剑；『一念瞋心起，百万障门开』，能忍方护功德。", "四神足：欲、勤、心、观四种『神通之足』，由之身心轻安、成就禅定神变。是定力增长的因。"], "ans": [1, 2], "exp": "正确项：忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。；忍辱是对治瞋毒的利剑；『一念瞋心起，百万障门开』，能忍方护功德。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "忍辱波罗蜜", "q": "关于「忍辱波罗蜜」的关联与定位，下列说法正确的是？", "opts": ["四摄之三；实利他行。", "十八空之一；即无自性空，为核心。", "对治覆、恼等随烦恼；净障入道之要。", "六度之三；对治瞋；与般若空慧相应（观能骂所骂皆空）。"], "ans": 3, "exp": "六度之三；对治瞋；与般若空慧相应（观能骂所骂皆空）。"}, {"type": "multi", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "般若波罗蜜（六度之导）", "q": "下列关于「般若波罗蜜（六度之导）」的表述，正确的有（多选）？", "opts": ["般若与方便不一不二：以般若空故不执，以方便悲故不舍。", "六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。"], "ans": [0, 1], "exp": "正确项：六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。；般若与方便不一不二：以般若空故不执，以方便悲故不舍。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "般若波罗蜜（六度之导）", "q": "关于「般若波罗蜜（六度之导）」的关联与定位，下列说法正确的是？", "opts": ["论宗趣在大乘菩提：般若为智、方便为悲，二道双运，终证无上菩提；一切法门皆趣此一。", "十八空之一；空轮回始际。", "六度之导；与论首『般若波罗蜜』同体；与方便道合为二道。", "三十七道品之五；五根之坚。"], "ans": 2, "exp": "六度之导；与论首『般若波罗蜜』同体；与方便道合为二道。"}, {"type": "multi", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "八正道", "q": "下列关于「八正道」的表述，正确的有（多选）？", "opts": ["六度中的般若：以空慧照见三轮体空，使前五度皆成无住相波罗蜜。论云『五度如盲，般若如导』——无般若则布施等但成人天福，不名波罗蜜。", "八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。", "菩萨行六度，亦以八正道为体；正见即般若空慧。"], "ans": [1, 3], "exp": "正确项：八正道：正见、正思惟、正语、正业、正命、正精进、正念、正定。是离苦得乐、趣涅槃的正道，亦摄戒定慧三学。；菩萨行六度，亦以八正道为体；正见即般若空慧。"}, {"type": "single", "cat": "菩萨行（六度·四摄·三十七道品）", "dh": "八正道", "q": "关于「八正道」的关联与定位，下列说法正确的是？", "opts": ["二道之一；与般若道双运；即方便波罗蜜。", "与诸法实相、毕竟空相应；菩萨不住而利生。", "三十七道品之七；摄戒定慧，正见即般若。", "三十七道品之四；与五力相资。"], "ans": 2, "exp": "三十七道品之七；摄戒定慧，正见即般若。"}, {"type": "multi", "cat": "二道二智·发心回向", "dh": "般若道", "q": "下列关于「般若道」的表述，正确的有（多选）？", "opts": ["《大智度论》的宗趣在『大乘菩萨道』：以般若为导，发菩提心、修六度、度众生、成佛道。它不同于小乘唯求自了，而强调『自利利他、悲智双运』。", "二道中，般若道偏重自证空性；与方便道并行，不证涅槃而利生。", "般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。", "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。"], "ans": [1, 2], "exp": "正确项：般若道（慧行）：以般若空慧观诸法实相、破一切执，是菩萨的『智』的一面。好比眼目，照见正路。；二道中，般若道偏重自证空性；与方便道并行，不证涅槃而利生。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "般若道", "q": "关于「般若道」的关联与定位，下列说法正确的是？", "opts": ["六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "二道之一；与方便道双运；成一切智、道种智。", "四悉檀为论之判教总纲：世界、为人、对治三为权巧，第一义为实相；权实双运，归趣毕竟空。", "般若为六度之导（五度如盲，般若如导）；与方便波罗蜜不一不二，合为菩萨二道。十八空、三解脱门皆般若之开演。"], "ans": 1, "exp": "二道之一；与方便道双运；成一切智、道种智。"}, {"type": "multi", "cat": "二道二智·发心回向", "dh": "方便道", "q": "下列关于「方便道」的表述，正确的有（多选）？", "opts": ["忍辱：于违缘、毁骂、苦受不起瞋恨，安受耐苦。论分耐怨害忍、安受苦忍、谛察法忍。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "方便非虚伪，而是『以无所得为方便』——虽行万行而三轮体空。"], "ans": [2, 3], "exp": "正确项：方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。；方便非虚伪，而是『以无所得为方便』——虽行万行而三轮体空。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "方便道", "q": "关于「方便道」的关联与定位，下列说法正确的是？", "opts": ["六度之五；为慧依；与般若相资。", "毕竟空摄十八空之极，与三解脱门相应；不堕断常二边，即中道实相。", "二道之一；与般若道双运；即方便波罗蜜。", "三智之二；菩萨所证；知差别门。"], "ans": 2, "exp": "二道之一；与般若道双运；即方便波罗蜜。"}, {"type": "multi", "cat": "二道二智·发心回向", "dh": "道种智", "q": "下列关于「道种智」的表述，正确的有（多选）？", "opts": ["道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。", "道种智即『知病识药』之智；与一切智合，空有双照。", "回向：将所修善根功德，回转趣向『无上菩提』与『一切众生』，不令滞于三有或小果。是菩萨行的关键转折。", "同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。"], "ans": [0, 1], "exp": "正确项：道种智：知一切『别相』（无量法门、众生根性差别），是菩萨所证。能以此巧说方便、度化群机。；道种智即『知病识药』之智；与一切智合，空有双照。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "道种智", "q": "关于「道种智」的关联与定位，下列说法正确的是？", "opts": ["十八空之一；与外空、内外空共破我执依处。", "三智之二；菩萨所证；知差别门。", "六度之二；为定慧基；与忍辱、精进相连。", "三十七道品之首；三解脱门、空慧之基。"], "ans": 1, "exp": "三智之二；菩萨所证；知差别门。"}, {"type": "multi", "cat": "二道二智·发心回向", "dh": "一切种智", "q": "下列关于「一切种智」的表述，正确的有（多选）？", "opts": ["念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。", "三智之极；二道圆修、二利究竟，方证此智，即无上菩提。", "龙树菩萨（约公元2—3世纪）是印度大乘佛教的奠基者，被尊为『八宗共祖』。他造《大智度论》《中论》《十二门论》等，系统阐发『缘起性空』与『中道』，破斥外道与部派执着，奠定般若空宗的理论骨架。"], "ans": [1, 2], "exp": "正确项：一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。；三智之极；二道圆修、二利究竟，方证此智，即无上菩提。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "一切种智", "q": "关于「一切种智」的关联与定位，下列说法正确的是？", "opts": ["三智之极；佛果所证；即无上菩提智。", "三十七道品之首；三解脱门、空慧之基。", "四摄之三；实利他行。", "与念佛易行道相系；性空故唯心所现。"], "ans": 0, "exp": "三智之极；佛果所证；即无上菩提智。"}, {"type": "multi", "cat": "二道二智·发心回向", "dh": "发菩提心", "q": "下列关于「发菩提心」的表述，正确的有（多选）？", "opts": ["发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。", "四正勤：已生恶令断、未生恶令不生、未生善令生、已生善令增长。是『精进』在修行上的具体展开。", "菩提心如种子、如劫火，能坏一切惑、生一切智；不发心则非菩萨。", "无法有法空：总破『有、无』二边，显非有非无、离一切戏论。这是十八空的总结，趣入中道实相。"], "ans": [0, 2], "exp": "正确项：发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。；菩提心如种子、如劫火，能坏一切惑、生一切智；不发心则非菩萨。"}, {"type": "single", "cat": "二道二智·发心回向", "dh": "发菩提心", "q": "关于「发菩提心」的关联与定位，下列说法正确的是？", "opts": ["六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "三十七道品之七；摄戒定慧，正见即般若。", "论释经以序品为纲；序品所举五眼、神通、四悉檀等，皆于前三十余卷广释，为全论骨架。", "菩萨行之始；与二道二智相系；回向所趣。"], "ans": 3, "exp": "菩萨行之始；与二道二智相系；回向所趣。"}, {"type": "multi", "cat": "修行对治·四谛十二因缘", "dh": "四谛", "q": "下列关于「四谛」的表述，正确的有（多选）？", "opts": ["同事：站在众生同一立场、同其事业，近距离摄化。『先以欲钩牵，后令入佛智』——同其事而后导之以法。", "四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。", "菩萨深观四谛而不仅自度——知苦愍生、断集修道、证灭不住。", "内空：观『内六入』（眼耳鼻舌身意六根）空，无实我我所。根门只是因缘和合的功能，并无一个『内在的主体』。"], "ans": [1, 2], "exp": "正确项：四谛：苦（世间果）、集（苦因·烦恼业）、灭（涅槃果）、道（灭因·八正道等）。是佛法最根本的框架，凡圣皆由此判别。；菩萨深观四谛而不仅自度——知苦愍生、断集修道、证灭不住。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "四谛", "q": "关于「四谛」的关联与定位，下列说法正确的是？", "opts": ["十八空之一；破执空之病，显毕竟空。", "十八空之一；空有为法。", "流转还灭之链；与四谛相摄；即空故可转。", "佛法总纲；与十二因缘、八正道相连；菩提出世间智所依。"], "ans": 3, "exp": "佛法总纲；与十二因缘、八正道相连；菩提出世间智所依。"}, {"type": "multi", "cat": "修行对治·四谛十二因缘", "dh": "十二因缘", "q": "下列关于「十二因缘」的表述，正确的有（多选）？", "opts": ["十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。", "论广释十二因缘『即是佛性、即空』——缘起即空，空故可转。菩萨以此观生死如幻。", "发菩提心：发起『上求佛道、下化众生』的愿心，是入大乘之门、成佛之种。论以种种譬喻显发心之要。", "无愿（无作）解脱门：于三有果报不希求、不造作，厌离生死、不愿求有，由此解脱。"], "ans": [0, 1], "exp": "正确项：十二因缘：无明→行→识→名色→六入→触→受→爱→取→有→生→老死。顺观则流转生死，逆观则还灭涅槃。；论广释十二因缘『即是佛性、即空』——缘起即空，空故可转。菩萨以此观生死如幻。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "十二因缘", "q": "关于「十二因缘」的关联与定位，下列说法正确的是？", "opts": ["对治覆、恼等随烦恼；净障入道之要。", "六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "与难行道（六度）对；方便摄生；不违般若。", "流转还灭之链；与四谛相摄；即空故可转。"], "ans": 3, "exp": "流转还灭之链；与四谛相摄；即空故可转。"}, {"type": "multi", "cat": "修行对治·四谛十二因缘", "dh": "念佛·易行道", "q": "下列关于「念佛·易行道」的表述，正确的有（多选）？", "opts": ["有为空：观『有为法』（因缘造作、生灭变化者）空。五蕴、十八界等皆因缘生、无实自性。", "念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。", "易行非浅易，而是『他力方便』；与般若空慧不违——念而无念，心佛双泯。", "一切种智：总别双照、究竟圆满之智，是佛所证。一时遍知一切法的总相与别相、如实与方便。"], "ans": [1, 2], "exp": "正确项：念佛（易行道）：论卷九立『念佛三昧』为易行道——称念阿弥陀佛名号、系心一佛，以佛力摄持，疾得功德，不似六度万行（难行道）之勤苦。；易行非浅易，而是『他力方便』；与般若空慧不违——念而无念，心佛双泯。"}, {"type": "single", "cat": "修行对治·四谛十二因缘", "dh": "念佛·易行道", "q": "关于「念佛·易行道」的关联与定位，下列说法正确的是？", "opts": ["三十七道品之六；菩提觉证之支。", "论之宗趣；一切种智之果；二道所趣。", "四悉檀为论之判教总纲：世界、为人、对治三为权巧，第一义为实相；权实双运，归趣毕竟空。", "与难行道（六度）对；方便摄生；不违般若。"], "ans": 3, "exp": "与难行道（六度）对；方便摄生；不违般若。"}, {"type": "multi", "cat": "果德·涅槃净土", "dh": "无上菩提", "q": "下列关于「无上菩提」的表述，正确的有（多选）？", "opts": ["爱语：以柔软、诚实、应机的语言安慰、劝导众生，令其心开意解。非谄媚，而是『如实而善巧』之语。", "无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。", "论以『菩提』为宗趣；二道二智、六度万行，皆趣此一。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。"], "ans": [1, 2], "exp": "正确项：无上菩提（阿耨多罗三藐三菩提）：无上正等正觉，即佛果。是菩萨行最终所证——一切种智圆满、悲愿究竟。；论以『菩提』为宗趣；二道二智、六度万行，皆趣此一。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "无上菩提", "q": "关于「无上菩提」的关联与定位，下列说法正确的是？", "opts": ["论之宗趣；一切种智之果；二道所趣。", "四摄之三；实利他行。", "菩萨功德；与菩提、净土相资；易行道所赐。", "论宗趣在大乘菩提：般若为智、方便为悲，二道双运，终证无上菩提；一切法门皆趣此一。"], "ans": 0, "exp": "论之宗趣；一切种智之果；二道所趣。"}, {"type": "multi", "cat": "果德·涅槃净土", "dh": "涅槃", "q": "下列关于「涅槃」的表述，正确的有（多选）？", "opts": ["《大智度论》百卷，组织独特：前约三十四卷详释本经『序品』（缘起分），逐句发挥，被称为『论中之论』；其后各卷略释余品，举要发凡。", "方便道（悲行）：以善巧方便利益众生、修六度万行，是菩萨的『悲』的一面。好比双足，能行能到。", "般若所证实相即涅槃；菩萨『不住涅槃』而还度众生，是悲智双运。", "涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。"], "ans": [2, 3], "exp": "正确项：涅槃：烦恼灭尽、毕竟空寂之解脱。非断灭，而是『寂灭为乐』——离一切戏论、生死永息。；般若所证实相即涅槃；菩萨『不住涅槃』而还度众生，是悲智双运。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "涅槃", "q": "关于「涅槃」的关联与定位，下列说法正确的是？", "opts": ["与难行道（六度）对；方便摄生；不违般若。", "与诸法实相、毕竟空相应；菩萨不住而利生。", "十八空之一；空无为法，防执涅槃。", "三解脱门之一；与无相、无愿同入实相。"], "ans": 1, "exp": "与诸法实相、毕竟空相应；菩萨不住而利生。"}, {"type": "multi", "cat": "果德·涅槃净土", "dh": "净土", "q": "下列关于「净土」的表述，正确的有（多选）？", "opts": ["净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。", "净土是方便与实相不二——虽言『有土』，亦唯心所现、性空寂。", "性空：诸法无『自性』（自有不变之体性）。一切法依他缘起，故无自性——这是空义最核心的一句。", "第一义空：即诸法实相之空，离一切相、言语道断。它是空义的究极，非断灭而是实相本身。"], "ans": [0, 1], "exp": "正确项：净土：诸佛清净庄严之国土，如阿弥陀佛西方极乐。众生以信愿行往生，于净土中速成佛道。论以念佛易行道趣此。；净土是方便与实相不二——虽言『有土』，亦唯心所现、性空寂。"}, {"type": "single", "cat": "果德·涅槃净土", "dh": "净土", "q": "关于「净土」的关联与定位，下列说法正确的是？", "opts": ["六度之首；与三轮体空相应，般若为导；四摄中亦有布施。", "十八空之一；显无所得。", "菩萨行之始；与二道二智相系；回向所趣。", "与念佛易行道相系；性空故唯心所现。"], "ans": 3, "exp": "与念佛易行道相系；性空故唯心所现。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「般若与方便不一不二」的说法，正确的一项是？", "opts": ["本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。", "本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。", "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。", "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。"], "ans": 1, "exp": "本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「般若与方便不一不二」，下列说法正确的有（多选）？", "opts": ["六波罗蜜有次第：先布施摄众生、持戒立轨范、忍辱受力、精进不退、禅定得静，最后以般若照空——前五为『事』，般若为『眼』。", "般若说空，怕人落断灭、舍众生；方便说有（行六度、度众生），怕人执相、迷生死。", "修行阶位上，凡夫由发菩提心入道，于二道双修；初地得无生法忍（近道种智），地地增上；至佛果一切种智圆满，即无上菩提。", "《大智度论》最吃紧的一句话，是『般若与方便（悲）不一不二』。"], "ans": [1, 3], "exp": "正确项：《大智度论》最吃紧的一句话，是『般若与方便（悲）不一不二』。；般若说空，怕人落断灭、舍众生；方便说有（行六度、度众生），怕人执相、迷生死。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「空有不二·中道实相」的说法，正确的一项是？", "opts": ["本图对显易行难行。难行（六度）依自力，易行（念佛）依佛力；取向虽异，同趣菩提，且不违般若。为怯弱众生开方便门。", "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。", "本图立四悉檀权实。世界、为人、对治三为权，第一义为实；三权汇一实，权实不二。读经遇权语不执、遇实语直承。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。"], "ans": 1, "exp": "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「空有不二·中道实相」，下列说法正确的有（多选）？", "opts": ["空不是『什么都没有』，而是『无自性、如幻缘起』。", "论主标『毕竟空』，却最忌『恶取空』。", "论云：『般若波罗蜜多者，是一切诸方便之父』；又云菩萨以『无所得为方便』，行六度万行。", "这并非说念佛『浅易无用』，而是为『根钝障重、怯弱退心』的众生开一方便之门。"], "ans": [0, 1], "exp": "正确项：论主标『毕竟空』，却最忌『恶取空』。；空不是『什么都没有』，而是『无自性、如幻缘起』。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「六度次第与般若为导」的说法，正确的一项是？", "opts": ["本图明论之地位。《大品般若》与龙树中观，经广释集为大智度论（论中之论），启汉传三论、天台诸宗，为大乘空慧之总枢。", "本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。", "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。"], "ans": 2, "exp": "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「六度次第与般若为导」，下列说法正确的有（多选）？", "opts": ["六波罗蜜有次第：先布施摄众生、持戒立轨范、忍辱受力、精进不退、禅定得静，最后以般若照空——前五为『事』，般若为『眼』。", "关键在『般若为导』：论以『五度如盲，般若如导』为喻。", "六度是行体，四摄是化仪，三十七道品是资粮，二道二智是纲领，四悉檀是说法善巧，易行道是接引方便。", "论主标『毕竟空』，却最忌『恶取空』。"], "ans": [0, 1], "exp": "正确项：六波罗蜜有次第：先布施摄众生、持戒立轨范、忍辱受力、精进不退、禅定得静，最后以般若照空——前五为『事』，般若为『眼』。；关键在『般若为导』：论以『五度如盲，般若如导』为喻。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「二道二智与修行阶位」的说法，正确的一项是？", "opts": ["本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。", "本图立四悉檀权实。世界、为人、对治三为权，第一义为实；三权汇一实，权实不二。读经遇权语不执、遇实语直承。", "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。"], "ans": 0, "exp": "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「二道二智与修行阶位」，下列说法正确的有（多选）？", "opts": ["二道：般若道（慧行，观空）、方便道（悲行，化他）。", "『二道二智』是菩萨行的总架构。", "善知识说法，亦当先以世界/为人/对治接引，待根熟方以第一义直指。", "论主标『毕竟空』，却最忌『恶取空』。"], "ans": [0, 1], "exp": "正确项：『二道二智』是菩萨行的总架构。；二道：般若道（慧行，观空）、方便道（悲行，化他）。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「四悉檀与说法善巧」的说法，正确的一项是？", "opts": ["本图立四悉檀权实。世界、为人、对治三为权，第一义为实；三权汇一实，权实不二。读经遇权语不执、遇实语直承。", "本图以十八空双遣断常二边，归中道实相（毕竟空）。常见的有执、断的无执皆违实相；八不中道离四双八边，为论主空义之极。", "本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。"], "ans": 0, "exp": "本图立四悉檀权实。世界、为人、对治三为权，第一义为实；三权汇一实，权实不二。读经遇权语不执、遇实语直承。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「四悉檀与说法善巧」，下列说法正确的有（多选）？", "opts": ["十八空里的『无法空、有法空、无法有法空』，正为双遣『断、常』二边：执『实有』是常见，执『实无』是断见，二者皆违实相。", "空不是『什么都没有』，而是『无自性、如幻缘起』。", "前三为『权』（方便引接），后一为『实』（真实归宿）。", "佛说法不出四悉檀，龙树用以判摄一切教法：\n①世界悉檀——随世俗说因果善恶，令人生信（对初机）；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对现行烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空（究竟了义）。"], "ans": [2, 3], "exp": "正确项：佛说法不出四悉檀，龙树用以判摄一切教法：\n①世界悉檀——随世俗说因果善恶，令人生信（对初机）；②各各为人悉檀——随众生根性说对治法；③对治悉檀——针对现行烦恼说克制之法；④第一义悉檀——直显诸法实相、毕竟空（究竟了义）。；前三为『权』（方便引接），后一为『实』（真实归宿）。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「易行道与难行道」的说法，正确的一项是？", "opts": ["本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。", "本图对显易行难行。难行（六度）依自力，易行（念佛）依佛力；取向虽异，同趣菩提，且不违般若。为怯弱众生开方便门。", "本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。"], "ans": 2, "exp": "本图对显易行难行。难行（六度）依自力，易行（念佛）依佛力；取向虽异，同趣菩提，且不违般若。为怯弱众生开方便门。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「易行道与难行道」，下列说法正确的有（多选）？", "opts": ["论卷九立『念佛三昧』为易行道：称念阿弥陀佛名号、系心一佛，以佛愿力摄持，疾得功德、不退转，不似『诸余法门』（六度万行）之勤苦难成（难行道）。", "空不是『什么都没有』，而是『无自性、如幻缘起』。", "论云：『般若波罗蜜多者，是一切诸方便之父』；又云菩萨以『无所得为方便』，行六度万行。", "这并非说念佛『浅易无用』，而是为『根钝障重、怯弱退心』的众生开一方便之门。"], "ans": [0, 3], "exp": "正确项：论卷九立『念佛三昧』为易行道：称念阿弥陀佛名号、系心一佛，以佛愿力摄持，疾得功德、不退转，不似『诸余法门』（六度万行）之勤苦难成（难行道）。；这并非说念佛『浅易无用』，而是为『根钝障重、怯弱退心』的众生开一方便之门。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「大智度论在般若系的地位」的说法，正确的一项是？", "opts": ["本图对显易行难行。难行（六度）依自力，易行（念佛）依佛力；取向虽异，同趣菩提，且不违般若。为怯弱众生开方便门。", "本图显般若与方便双运不二。般若照空、方便度生，二者如鸟双翼；偏空堕二乘、偏有堕凡夫，双运方成菩萨行。图示二门并发、汇于中道。", "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。", "本图明论之地位。《大品般若》与龙树中观，经广释集为大智度论（论中之论），启汉传三论、天台诸宗，为大乘空慧之总枢。"], "ans": 3, "exp": "本图明论之地位。《大品般若》与龙树中观，经广释集为大智度论（论中之论），启汉传三论、天台诸宗，为大乘空慧之总枢。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「大智度论在般若系的地位」，下列说法正确的有（多选）？", "opts": ["论云：『般若波罗蜜多者，是一切诸方便之父』；又云菩萨以『无所得为方便』，行六度万行。", "读《大智度论》逢『空』字，皆当作此解。", "《大智度论》是般若经典的『广释』，也是大乘中观体系的集大成之作。", "它上承《大品般若》的空慧，下启汉传三论、天台诸宗，与《中论》《百论》《十二门论》并峙。"], "ans": [2, 3], "exp": "正确项：《大智度论》是般若经典的『广释』，也是大乘中观体系的集大成之作。；它上承《大品般若》的空慧，下启汉传三论、天台诸宗，与《中论》《百论》《十二门论》并峙。"}, {"type": "single", "cat": "关系", "dh": "", "q": "下列关于「菩萨行总览（三门摄要）」的说法，正确的一项是？", "opts": ["本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。", "本图立二道二智与阶位。发心入道、二道双修、初地得忍（道种智）、佛果一切种智。图示从凡至圣之全程，使学者知今在何处。", "本图显六度次第与般若为导。前五度如盲、般若如导；无般若但有漏福，有般若方名波罗蜜。图示五度横列、般若统之。", "本图明论之地位。《大品般若》与龙树中观，经广释集为大智度论（论中之论），启汉传三论、天台诸宗，为大乘空慧之总枢。"], "ans": 0, "exp": "本图摄菩萨行于三门：般若（智）、方便（悲）、回向（舵）。六度四摄三十七道品为体，悲智双运、权实不二为纲，与大论同一脉络。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「菩萨行总览（三门摄要）」，下列说法正确的有（多选）？", "opts": ["菩萨万行，可摄为三要：一以般若为智（照空、破执），二以方便为悲（度生、万行），三以回向为舵（功德趣菩提、不滞小果）。", "六度是行体，四摄是化仪，三十七道品是资粮，二道二智是纲领，四悉檀是说法善巧，易行道是接引方便。", "关键在『般若为导』：论以『五度如盲，般若如导』为喻。", "故菩萨行，必以空慧导于前五、以悲心行于万行，二利圆融。"], "ans": [0, 1], "exp": "正确项：菩萨万行，可摄为三要：一以般若为智（照空、破执），二以方便为悲（度生、万行），三以回向为舵（功德趣菩提、不滞小果）。；六度是行体，四摄是化仪，三十七道品是资粮，二道二智是纲领，四悉檀是说法善巧，易行道是接引方便。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「二道二智 · 修行总纲」主要表达的是？", "opts": ["此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。", "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。", "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。"], "ans": 2, "exp": "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「三解脱门 · 入实相」主要表达的是？", "opts": ["此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。", "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。", "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。"], "ans": 3, "exp": "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「六度次第 · 般若为导」主要表达的是？", "opts": ["此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。", "此图立四悉檀权实。世界、为人、对治三悉檀为权巧方便（随俗、随根、随病），第一义悉檀为实相（毕竟空）。佛说法不出此四，权为引物、实为了义，权实不二，终归第一义。图示三权向一实汇流。", "此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。"], "ans": 3, "exp": "此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「四悉檀 · 权实双运」主要表达的是？", "opts": ["此图立四悉檀权实。世界、为人、对治三悉檀为权巧方便（随俗、随根、随病），第一义悉檀为实相（毕竟空）。佛说法不出此四，权为引物、实为了义，权实不二，终归第一义。图示三权向一实汇流。", "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。", "此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。"], "ans": 0, "exp": "此图立四悉檀权实。世界、为人、对治三悉檀为权巧方便（随俗、随根、随病），第一义悉檀为实相（毕竟空）。佛说法不出此四，权为引物、实为了义，权实不二，终归第一义。图示三权向一实汇流。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「十八空 · 毕竟空寂」主要表达的是？", "opts": ["此图以三门同入实相。空解脱门破我法执，无相解脱门离一切相，无愿解脱门不希求有——三义虽异，同诠『无住涅槃』，门门皆趣诸法实相。图示三框并趋一实，显解脱非一途，而同证毕竟空。", "此图以『二道二智』显菩萨修行总纲。般若道（慧行）与方便道（悲行）双运不一不二：以般若照实相、以方便利众生；二道圆修，次生三智——一切智（总相）、道种智（别相）、一切种智（总别双照、佛果）。三智归趣无上菩提。图示双道并发、三智递升，示菩萨不偏空有、悲智具足之纲领。", "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。", "此图显六度次第与般若为导。布施、持戒、忍辱、精进、禅定五度如盲，般若如导——若无般若空慧，前五但成人天有漏福，不名波罗蜜；般若贯导五度，令皆成无住相行。图示五度横列、般若居下统之，示『三轮体空方名波罗蜜』。"], "ans": 2, "exp": "此图以十八空归摄毕竟空。内空、外空遣我我所，性空显无自性，诸法空总破一切法，不可得空显无所得，无法有法空双遣有无——十八门层层遣执，同归毕竟空，即中道实相（不二）。图示散空汇于一空、空趣实相。"}];
+// ===== 工具 =====
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const ce=tag=>document.createElement(tag);
+
+// 合并 group / rel 到数据
+CATS.forEach(c=>c.dharmas.forEach(d=>{ d.group=GROUP_MAP[d.name]||null; d.rel=REL_NOTES[d.name]||''; }));
+
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z"/></svg>';
+
+// ===== 主题 =====
+const themeToggle=$('#themeToggle');
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light'); themeToggle.innerHTML = t==='dark'?SUN:MOON; }
+let theme = localStorage.getItem('dz-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+applyTheme(theme);
+themeToggle.onclick=()=>{ theme = theme==='dark'?'light':'dark'; localStorage.setItem('dz-theme',theme); applyTheme(theme); };
+
+// ===== 导航 =====
+function goPage(p){
+  $$('.page').forEach(s=>s.classList.remove('active'));
+  const sec=$('#'+p); if(sec) sec.classList.add('active');
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===p));
+  window.scrollTo(0,0);
+}
+$$('.nav-btn').forEach(b=> b.onclick=()=>goPage(b.dataset.page));
+
+function makeDharmaAcc(d){
+  const acc=ce('div'); acc.className='acc'; acc.dataset.name=d.name;
+  const grpTag = d.group? '<span class="grp-tag">'+d.group+'</span>':'';
+  const impTag = d.imp? '<span class="imp-tag">重点</span>':'';
+  const head=ce('div'); head.className='acc-head';
+  head.innerHTML='<span class="dh">'+d.name+'</span>'+grpTag+impTag+'<span class="arr">▶</span>';
+  const body=ce('div'); body.className='acc-body';
+  let h='';
+  (d.desc||[]).forEach(p=> h+='<p class="desc">'+p+'</p>');
+  if(d.rel) h+='<div class="rel-note"><span class="lab">关联及包含 · </span>'+d.rel+'</div>';
+  h+='<div class="scene-title">生活场景（'+(d.scenes?d.scenes.length:0)+'）</div><ul class="scenes">';
+  (d.scenes||[]).forEach(s=> h+='<li>'+s+'</li>');
+  h+='</ul>';
+  const use=USE_MAP[d.name];
+  if(use){ h+='<div class="use-block"><div class="use-title">⚡ 转换与应对</div>'
+    +'<div class="use-sub">生活场景重现</div><p class="use-scene">'+use.scene+'</p>'
+    +'<div class="use-sub">如何用论典转换 · 应对 · 善用</div><p class="use-apply">'+(use.apply||'').replace(/\n/g,'<br>')+'</p></div>'; }
+  body.innerHTML=h;
+  head.onclick=()=>acc.classList.toggle('open');
+  acc.appendChild(head); acc.appendChild(body);
+  return acc;
+}
+function renderDetail(){
+  const wrap=$('#detailList'); wrap.innerHTML='';
+  CATS.forEach(c=>{
+    const block=ce('div'); block.className='cat-block open';
+    const bh=ce('div'); bh.className='cat-head';
+    bh.innerHTML='<span class="cat-name">'+c.name+'</span><span class="cat-count">'+c.count+' 法</span><span class="arr">▶</span>';
+    const bb=ce('div'); bb.className='cat-body';
+    if(c.intro){ const intro=ce('div'); intro.className='cat-info'; intro.textContent=c.intro; bb.appendChild(intro); }
+    if(c.groups && c.groups.length){
+      c.groups.forEach(g=>{
+        const gs=c.dharmas.filter(d=>d.group===g);
+        if(!gs.length) return;
+        const grp=ce('div'); grp.className='grp';
+        grp.innerHTML='<div class="grp-title">'+g+'<span class="gc">'+gs.length+' 法</span></div>';
+        gs.forEach(d=> grp.appendChild(makeDharmaAcc(d)));
+        bb.appendChild(grp);
+      });
+      const rest=c.dharmas.filter(d=>!d.group);
+      rest.forEach(d=> bb.appendChild(makeDharmaAcc(d)));
+    } else {
+      c.dharmas.forEach(d=> bb.appendChild(makeDharmaAcc(d)));
+    }
+    bh.onclick=()=>block.classList.toggle('open');
+    block.appendChild(bh); block.appendChild(bb); wrap.appendChild(block);
+  });
+}
+
+// 跳转到某法
+function goDetailTo(name){
+  goPage('detail');
+  setTimeout(()=>{
+    $$('.cat-block').forEach(b=>b.classList.add('open'));
+    const acc=$$('.acc').find(a=>a.dataset.name===name);
+    if(acc){ acc.classList.add('open'); acc.scrollIntoView({behavior:'smooth',block:'center'}); acc.classList.remove('flash'); void acc.offsetWidth; acc.classList.add('flash'); }
+  }, 80);
+}
+
+// ===== 逻辑图聚合节点下钻 =====
+const ALL_NAMES=new Set();
+CATS.forEach(c=>c.dharmas.forEach(d=>ALL_NAMES.add(d.name)));
+
+function openGraph(title,svg,extraText){
+  // 找出图中出现的聚合节点
+  const tmp=document.createElement('div'); tmp.innerHTML=svg;
+  const present=[];
+  tmp.querySelectorAll('text').forEach(t=>{ const k=t.textContent.trim(); if(DRILL[k]&&!present.includes(k)) present.push(k); });
+  // 渲染下钻 chips
+  let chipsHtml='';
+  present.forEach((k,idx)=>{
+    const ms=DRILL[k];
+    chipsHtml+='<div class="drill-grp" id="drillG'+idx+'"><div class="drill-h">'+k.replace(/（.*?）/,'')+'　含 '+ms.length+' 法</div><div class="drill-chips">';
+    ms.forEach(n=> chipsHtml+='<button class="drill-chip" data-n="'+n+'">'+n+'</button>');
+    chipsHtml+='</div></div>';
+  });
+  let body=svg;
+  if(chipsHtml) body+='<div class="drill-tip">点击下列法名，进入「论典详学」查看详情</div>'+chipsHtml;
+  if(extraText) body+='<div class="gm-text">'+extraText+'</div>';
+  $('#gmInner').innerHTML='<div class="gm-title">'+title+'</div>'+body;
+  const real=$('#gmInner');
+  // 图上节点：聚合节点点击滚到对应 chip 组；单个法名直接跳转
+  real.querySelectorAll('text').forEach(t=>{
+    const k=t.textContent.trim();
+    if(DRILL[k]){
+      const idx=present.indexOf(k);
+      t.style.cursor='pointer';
+      t.onclick=()=>{ const g=real.querySelector('#drillG'+idx); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); };
+    } else {
+      const base=k.replace(/（.*?）$/,'');
+      if(ALL_NAMES.has(base)){
+        t.style.cursor='pointer';
+        t.onclick=()=>{ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; goDetailTo(base); };
+      }
+    }
+  });
+  real.querySelectorAll('.drill-chip').forEach(b=> b.onclick=()=>{
+    $('#graphModal').classList.remove('show'); document.body.style.overflow=''; goDetailTo(b.dataset.n);
+  });
+  $('#graphModal').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+$('#gmClose').onclick=()=>{ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; };
+$('#graphModal').onclick=(e)=>{ if(e.target===$('#graphModal')){ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; } };
+function renderGraphs(){
+  const g=$('#graphGrid'); g.innerHTML='';
+  GRAPH_META.forEach(m=>{
+    const card=ce('div'); card.className='graph-card';
+    card.innerHTML='<div class="gc-title">'+m.t+'</div><div class="gsvg">'+RELATION_GRAPHS[m.k]+'</div><div class="graph-text">'+(GRAPH_TEXT[m.k]||'')+'</div><div class="graph-hint">点击逻辑图，展开所含具体诸法 ▾</div>';
+    const s=card.querySelector('.gsvg'); if(s) s.onclick=()=>openGraph(m.t, RELATION_GRAPHS[m.k], GRAPH_TEXT[m.k]);
+    g.appendChild(card);
+  });
+}
+function renderVein(){
+  const g=$('#veinGrid'); g.innerHTML='';
+  RELATIONS.forEach(r=>{
+    const t=r.t; const svg=VEIN_GRAPHS[t]||''; const txt=VEIN_TEXT[t]||'';
+    const card=ce('div'); card.className='graph-card';
+    card.innerHTML='<div class="gc-title">'+t+'</div>'+(svg?'<div class="gsvg">'+svg+'</div>':'')+'<div class="graph-text">'+txt+'</div>'+(svg?'<div class="graph-hint">点击逻辑图，展开所含具体诸法 ▾</div>':'');
+    const s=card.querySelector('.gsvg'); if(s) s.onclick=()=>openGraph(t, svg, VEIN_TEXT[t]);
+    g.appendChild(card);
+  });
+}
+
+// ===== 核心重点（折叠）=====
+function renderKeyPoints(){
+  const list=$('#kpList'); list.innerHTML='';
+  KEYPOINTS.forEach(k=>{
+    const acc=ce('div'); acc.className='acc';
+    const head=ce('div'); head.className='acc-head';
+    head.innerHTML='<span class="dh">'+k.t+'</span><span class="arr">▶</span>';
+    const body=ce('div'); body.className='acc-body';
+    body.innerHTML='<div class="kp-body"><p class="plain"><b>通俗解释：</b>'+k.plain+'</p>'
+      +'<div class="meta"><span class="lab">法理说明：</span>'+k.meta+'</div>'
+      +'<div class="meta"><span class="lab">生活比喻：</span>'+k['比喻']+'</div>'
+      +'<div class="modern"><span class="lab">现代场景：</span>'+(k['现代']||'')+'</div></div>';
+    head.onclick=()=>acc.classList.toggle('open');
+    acc.appendChild(head); acc.appendChild(body); list.appendChild(acc);
+  });
+}
+
+// ===== 场景应用 =====
+function renderScenarios(){
+  const list=$('#scnList'); list.innerHTML='';
+  SCENARIOS.forEach(s=>{
+    const d=ce('div'); d.className='scn';
+    const head=ce('div'); head.className='scn-head';
+    head.innerHTML='<span>'+s.t+'</span><span class="arr">▶</span>';
+    const body=ce('div'); body.className='scn-body';
+    body.innerHTML='<div class="row"><span class="lab">情境描述：</span>'+s.situ+'</div>'
+      +'<div class="row"><span class="lab">论典分析：</span>'+s.ana+'</div>'
+      +'<div class="row"><span class="lab">具体应用：</span>'+s.app+'</div>'
+      +'<div class="row"><span class="lab">修行启示：</span>'+s.ins+'</div>'
+      +'<div class="row modern"><span class="lab">现代场景：</span>'+(s['现代']||'')+'</div>';
+    head.onclick=()=> d.classList.toggle('open');
+    d.appendChild(head); d.appendChild(body); list.appendChild(d);
+  });
+}
+
+// ===== 考试 =====
+let examFilter='全部';
+let examSub='';          // 子分类
+let examBatch=15;        // 每批题数
+const MAIN_FILTERS=["全部", "论典纲要（释论之体）", "般若波罗蜜（智慧核心）", "菩萨行（六度·四摄·三十七道品）", "二道二智·发心回向", "修行对治·四谛十二因缘", "果德·涅槃净土", "关系", "重点法"];
+const SUB_MAP={"关系": [], "重点法": [], "般若波罗蜜（智慧核心）": ["十八空", "三解脱门"], "菩萨行（六度·四摄·三十七道品）": ["六度", "四摄", "三十七道品"], "二道二智·发心回向": ["二道", "三智"]};
+const SUB_GROUP_MAP={"十八空": "十八空", "三解脱门": "三解脱门", "六度": "六度", "四摄": "四摄", "三十七道品": "三十七道品", "二道": "二道", "三智": "三智"};
+const SUB_NAMES={};
+
+
+function renderFilter(){
+  const f=$('#examFilter'); f.innerHTML='';
+  // 第一行：主分类
+  const row1=ce('div'); row1.className='exam-filt-row';
+  MAIN_FILTERS.forEach(name=>{
+    const b=ce('button'); b.textContent=name; if(name===examFilter&&!examSub) b.className='active';
+    b.onclick=()=>{ examFilter=name; examSub=''; renderFilter(); };
+    row1.appendChild(b);
+  });
+  f.appendChild(row1);
+  // 第二行：子分类
+  const subs=SUB_MAP[examFilter];
+  if(subs && subs.length){
+    const row2=ce('div'); row2.className='exam-filt-row';
+    const lbl=ce('div'); lbl.className='exam-filt-label'; lbl.textContent='└ 子分类';
+    row2.appendChild(lbl);
+    // 「全部」子分类按钮
+    const allB=ce('button'); allB.textContent='全部'; allB.className='sub'+(!examSub?' active':'');
+    allB.onclick=()=>{ examSub=''; renderFilter(); }; row2.appendChild(allB);
+    subs.forEach(s=>{
+      const b=ce('button'); b.textContent=s; b.className='sub'+(examSub===s?' active':'');
+      b.onclick=()=>{ examSub=s; renderFilter(); };
+      row2.appendChild(b);
+    });
+    f.appendChild(row2);
+  }
+  // 第三行：每批题数
+  const row3=ce('div'); row3.className='exam-filt-row';
+  const sel=ce('select');
+  [10,15,20,30,50,999].forEach(n=>{
+    const o=ce('option'); o.value=n; o.textContent=n>=999?'全部(一次)':n+' 题/批'; if(n===examBatch)o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.onchange=()=>{ examBatch=+sel.value; };
+  const wrap=ce('div'); wrap.className='exam-batch';
+  wrap.innerHTML='<span>批次：</span>'; wrap.appendChild(sel);
+  row3.appendChild(wrap);
+  f.appendChild(row3);
+
+  // 显示当前范围题目数
+  const cnt=filteredExam().length;
+  const info=ce('div'); info.style.cssText='font-size:.781rem;color:var(--text-muted);margin-top:6px;';
+  info.textContent=cnt+' 题可选 · '+ (examBatch>=999?'一次性提交':Math.ceil(cnt/examBatch)+' 批次');
+  f.appendChild(info);
+}
+function filteredExam(){
+  let list=[];
+  if(examFilter==='全部'){ list=[...EXAM]; }
+  else if(examFilter==='重点法'){ list=EXAM.filter(q=>{ const d=findDharma(q.dh); return d&&d.imp; }); }
+  else { list=EXAM.filter(q=>q.cat===examFilter); }
+  // 子分类过滤（与论典详学结构对齐：按 group 反查，其余按具体法名反查）
+  if(examSub){
+    let names=null;
+    const grp=SUB_GROUP_MAP[examSub];
+    if(grp){
+      names=new Set();
+      CATS.forEach(c=>c.dharmas.forEach(d=>{if(d.group===grp)names.add(d.name);}));
+    }else if(SUB_NAMES[examSub]){
+      names=new Set(SUB_NAMES[examSub]);
+    }
+    if(names) list=list.filter(q=>names.has(q.dh));
+  }
+  return list;
+}
+function findDharma(name){ for(const c of CATS){ const d=c.dharmas.find(x=>x.name===name); if(d) return d; } return null; }
+let examPool=[];          // 当前批次的题目（已打乱）
+let examBatchIdx=0;       // 当前是第几批
+function startExam(){
+  const fullList=filteredExam();
+  // 打乱顺序
+  const shuffled=[...fullList].sort(()=>Math.random()-0.5);
+  // 分批截取
+  examBatchIdx=0;
+  if(examBatch>=999){ examPool=shuffled; }
+  else { examPool=shuffled.slice(0,examBatch); }
+  renderExamBatch();
+}
+function markQ(card, q){
+  const inputs=[...card.querySelectorAll('input')];
+  const aArr=Array.isArray(q.ans)?q.ans.slice().sort((a,b)=>a-b):[Number(q.ans)];
+  const sel=inputs.filter(i=>i.checked).map(i=>+i.value).sort((a,b)=>a-b);
+  const opts=card.querySelectorAll('.opt');
+  opts.forEach(o=>o.classList.remove('correct','wrong','sel'));
+  if(sel.length===0) return;
+  const isMulti=q.type==='multi';
+  const complete=!isMulti || sel.length===aArr.length;
+  if(!complete) return; // 多选：选满正确答案数量前不揭晓，避免提前剧透
+  opts.forEach((o,i)=>{
+    const input=o.querySelector('input');
+    if(input.checked) o.classList.add('sel');
+    if(aArr.indexOf(i)>=0) o.classList.add('correct');
+    if(input.checked && aArr.indexOf(i)<0) o.classList.add('wrong');
+  });
+  card.querySelector('.exp').classList.add('show');
+}
+function renderExamBatch(){
+  $('#examStart').style.display='none';
+  $('#examResult').style.display='none';
+  $('#examMain').style.display='block';
+  const fullLen=filteredExam().length;
+  const totalBatches = examBatch>=999?1:Math.ceil(fullLen/examBatch);
+  const box=$('#examQs'); box.innerHTML='';
+  examPool.forEach((q,idx)=>{
+    const card=ce('div'); card.className='q'; card.dataset.idx=idx;
+    const typ = q.type==='multi'?'多选':'单选';
+    let h='<div class="qnum">第 '+(idx+1)+'/'+examPool.length+' 题</div><div class="qmeta"><span class="typ">'+typ+'</span><span class="qt">'+q.q+'</span></div><div class="opts">';
+    q.opts.forEach((o,i)=>{
+      const t = q.type==='multi'?'checkbox':'radio';
+      h+='<label class="opt"><input type="'+t+'" name="q'+idx+'" value="'+i+'">'+o+'</label>';
+    });
+    h+='</div>';
+    if(q.dh) h+='<button class="qbtn dh-link" data-dh="'+q.dh+'">查看对应论典 · '+q.dh+'</button> ';
+    h+='<button class="qbtn explink">看解析</button><div class="exp">'+q.exp+'</div>';
+    card.innerHTML=h;
+    card.querySelector('.explink').onclick=(e)=>{ const ex=e.target.parentElement.querySelector('.exp'); ex.classList.toggle('show'); };
+    const dl=card.querySelector('.dh-link'); if(dl) dl.onclick=()=>goDetailTo(dl.dataset.dh);
+    [...card.querySelectorAll('input')].forEach(inp=>{ inp.addEventListener('change', ()=>markQ(card,q)); });
+    box.appendChild(card);
+  });
+  const subLabel = examSub ? ' › '+examSub : '';
+  let progText='本题范围：'+examFilter+subLabel;
+  if(totalBatches>1) progText += ' · 第 '+(examBatchIdx+1)+'/'+totalBatches+' 批 ('+examPool.length+'题)';
+  else progText += ' · 共 '+fullLen+' 题';
+  $('#examProgress').textContent=progText;
+  window.scrollTo(0,0);
+}
+function submitExam(){
+  const list=examPool;
+  let correct=0, total=list.length, answered=0;
+  list.forEach((q,idx)=>{
+    const card=$$('#examQs .q').find(c=>+c.dataset.idx===idx);
+    if(!card) return;
+    const sel=[...card.querySelectorAll('input:checked')].map(i=>+i.value).sort();
+    // 标准化 ans 为数值升序数组
+    const aArr=Array.isArray(q.ans)?q.ans.slice().sort():([]).concat(q.ans).map(Number).sort();
+    const aSet=aArr.join(','); const sSet=sel.join(',');
+    if(sel.length>0) answered++;
+    const opts=card.querySelectorAll('.opt');
+    opts.forEach((o,i)=>{
+      const input=o.querySelector('input');
+      o.classList.remove('correct','wrong','sel');
+      if(aArr.indexOf(i)>=0) o.classList.add('correct');
+      if(input.checked && aArr.indexOf(i)<0) o.classList.add('wrong');
+    });
+    if(sSet===aSet && sel.length>0){ correct++; card.querySelector('.exp').classList.add('show'); }
+  });
+  const pct = total? Math.round(correct/total*100):0;
+  let eval_txt = pct>=90?'通达无碍，大论在握。': pct>=75?'根基扎实，再练生熟。': pct>=60?'已入门径，勤加温习。':'尚须用功，回到论典详学对照。';
+  const fullLen=filteredExam().length;
+  const totalBatches = examBatch>=999?1:Math.ceil(fullLen/examBatch);
+  const isLast = (examBatchIdx+1)>=totalBatches;
+
+  $('#examMain').style.display='none';
+  const r=$('#examResult'); r.style.display='block';
+
+  let btns='';
+  if(totalBatches>1 && !isLast){
+    btns+='<button class="btn-primary" id="nextBatch" style="margin-right:10px">下一批 →</button>';
+  }
+  btns+='<button class="btn-primary" id="retryExam">'+(totalBatches>1&&!isLast?'本批重做':'返回筛选')+'</button>';
+
+  r.innerHTML='<div class="result"><div class="score">'+pct+'<span>%</span></div>'
+    +'<div class="eval">'+eval_txt+'</div>'
+    +'<p>答对 <strong>'+correct+'</strong> / 共 '+total+' 题（已作答 '+answered+' 题）'
+    +(totalBatches>1?' · 第 '+(examBatchIdx+1)+'/'+totalBatches+' 批':'')+'</p>'
+    +'<p class="muted">绿色为正确项，红色为误选。</p>'
+    +'<div style="text-align:center;margin-top:14px;display:flex;justify-content:center;flex-wrap:wrap;gap:8px">'+btns+'</div></div>';
+
+  if(totalBatches>1 && !isLast){
+    $('#nextBatch').onclick=()=>{
+      examBatchIdx++;
+      // 取下一批
+      const fullList=filteredExam().sort(()=>Math.random()-0.5);
+      const start=examBatchIdx*examBatch;
+      examPool=fullList.slice(start, start+examBatch);
+      renderExamBatch();
+    };
+  }
+  $('#retryExam').onclick=()=>{ $('#examResult').style.display='none'; $('#examStart').style.display='block'; };
+  window.scrollTo(0,0);
+}
+$('#startExam').onclick=startExam;
+$('#submitExam').onclick=submitExam;
+$('#backToFilter').onclick=()=>{ $('#examMain').style.display='none'; $('#examResult').style.display='none'; $('#examStart').style.display='block'; };
+
+// ===== 初始渲染 =====
+renderDetail();
+renderGraphs();
+renderVein();
+renderKeyPoints();
+renderScenarios();
+renderFilter();
+</script>
+<script>
+(function(){
+  var FS_OPTS=[85,100,115,130,145];
+  var fpOpts=document.getElementById('fpOpts');
+  var pop=document.getElementById('fontPop');
+  var BASE=16;
+  var cur=parseInt(localStorage.getItem('dz-fs')||'100',10);
+  function setFS(v){
+    cur=v; localStorage.setItem('dz-fs',String(v));
+    document.documentElement.style.fontSize=(BASE*v/100)+'px';
+    [].forEach.call(fpOpts.children,function(c){ c.classList.toggle('on', parseInt(c.textContent,10)===v); });
+  }
+  FS_OPTS.forEach(function(v){
+    var b=document.createElement('button'); b.className='fp-opt'; b.textContent=v+'%';
+    b.onclick=function(){ setFS(v); };
+    fpOpts.appendChild(b);
+  });
+  setFS(cur);
+  var ft=document.getElementById('fontToggle');
+  ft.onclick=function(e){ e.stopPropagation(); pop.classList.toggle('show'); };
+  document.addEventListener('click',function(e){
+    if(pop.classList.contains('show') && !pop.contains(e.target) && e.target!==ft) pop.classList.remove('show');
+  });
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('dazhidu-sw.js').catch(function(){}); });
+  }
+})();
+</script>
+</body>
+</html>
