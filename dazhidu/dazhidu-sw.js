@@ -1,5 +1,7 @@
-const CACHE = 'dazhidu-pwa-v2';
-// 只缓存大智度论自身资源；绝不缓存根目录(./)，避免启用时串到百法
+// 本 SW 由 /dazhidu/dazhidu-sw.js 注册，默认作用域 = /dazhidu/
+// 因此天然与根目录的百法 App 隔离，二者永不通话
+const CACHE = 'dazhidu-pwa-v3';
+// 只缓存大智度论自身资源（均为 /dazhidu/ 下的相对路径），绝不碰根目录的百法
 const ASSETS = [
   './dazhidu-learning.html',
   './dazhidu-manifest.json',
