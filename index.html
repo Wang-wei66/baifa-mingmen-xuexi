@@ -42,13 +42,15 @@
   --danger:#E8746B; --danger-bg:#38211E;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;min-height:100%;}
 html{font-size:16px;}
 body{
   font-family:var(--font);
   background:var(--bg); color:var(--text);
   line-height:1.75; font-size:1rem;
   overflow-x:hidden;
+  min-height:100vh; min-height:100dvh;
+  display:flex; flex-direction:column;
   padding-top:env(safe-area-inset-top,0);
   -webkit-font-smoothing:antialiased;
   transition:background .35s ease,color .35s ease;
@@ -101,6 +103,7 @@ img,svg{display:block;}
 /* 容器 */
 .container{
   max-width:880px; margin:0 auto;
+  flex:1 1 auto;
   padding:calc(env(safe-area-inset-top,0) + 58px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom,0) + 24px);
 }
 section.page{display:none;}
