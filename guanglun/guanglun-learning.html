@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#8B6F3E">
+<link rel="manifest" href="guanglun-manifest.json">
+<link rel="apple-touch-icon" href="guanglun-icon-192.png">
+<link rel="icon" href="guanglun-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="广论略讲">
+<title>菩提道次第广论略讲 · 互动学习</title>
+<style>
+
+:root{
+  --bg:#F6F1E7; --surface:#FFFFFF; --surface-2:#FBF6EC; --surface-3:#F2EADB;
+  --text:#3A2E1F; --text-2:#6B5B45; --text-muted:#9A8B74;
+  --primary:#8B6F3E; --primary-dark:#6B4F23; --accent:#C39A45;
+  --border:#EAE0CE; --border-strong:#DBCDB2;
+  --chip:#F1E7D3; --chip-active:#EFE2C4;
+  --shadow:0 2px 10px rgba(90,65,30,.07);
+  --shadow-md:0 6px 20px rgba(90,65,30,.10);
+  --shadow-lg:0 10px 34px rgba(90,65,30,.14);
+  --success:#2E7D32; --success-bg:#EAF6EB;
+  --danger:#C0392B; --danger-bg:#FBEDEB;
+  --radius:16px; --radius-sm:11px; --radius-xs:8px;
+  --nav-h:64px;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#16130F; --surface:#211C16; --surface-2:#282219; --surface-3:#2F2920;
+  --text:#ECE4D6; --text-2:#C7BAA6; --text-muted:#8C806E;
+  --primary:#D9B46A; --primary-dark:#C8A04A; --accent:#D9B46A;
+  --border:#38312733; --border-strong:#4A4135;
+  --chip:#322B20; --chip-active:#3D3424;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
+  --shadow-md:0 6px 20px rgba(0,0,0,.42);
+  --shadow-lg:0 10px 34px rgba(0,0,0,.5);
+  --success:#69C772; --success-bg:#1F3320;
+  --danger:#E8746B; --danger-bg:#38211E;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;}
+html{font-size:16px;}
+body{
+  font-family:var(--font);
+  background:var(--bg); color:var(--text);
+  line-height:1.75; font-size:1rem;
+  overflow-x:hidden;
+  min-height:100vh; min-height:100dvh;
+  display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top,0);
+  -webkit-font-smoothing:antialiased;
+  transition:background .35s ease,color .35s ease;
+}
+/* PWA standalone 模式下额外顶距 */
+@media(display-mode:standalone){
+  body{ padding-top:calc(env(safe-area-inset-top,0) + 4px); }
+}
+::selection{background:var(--accent);color:#fff;}
+img,svg{display:block;}
+
+/* 主题切换按钮 */
+.theme-toggle{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 10px); right:10px; z-index:90;
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow-md);
+  transition:transform .2s,background .3s,color .3s,border-color .3s;
+}
+.theme-toggle:hover{transform:scale(1.08);}
+.theme-toggle:active{transform:scale(.94);}
+.theme-toggle svg{width:20px;height:20px;}
+.font-toggle{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 10px); right:56px; z-index:90;
+  width:40px; height:40px; border-radius:50%;
+  border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--primary);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.938rem; font-weight:800; cursor:pointer; box-shadow:var(--shadow-md);
+}
+.font-toggle:hover{transform:scale(1.08);}
+.font-toggle:active{transform:scale(.94);}
+.font-pop{
+  position:fixed; top:calc(env(safe-area-inset-top,0) + 56px); right:10px; z-index:95;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:14px;
+  box-shadow:var(--shadow-lg); padding:12px 14px; display:none; min-width:148px;
+}
+.font-pop.show{display:block; animation:fadeIn .2s;}
+.fp-title{font-size:0.812rem; font-weight:800; color:var(--primary-dark); margin-bottom:9px; text-align:center;}
+.fp-opts{display:flex; flex-direction:column; gap:7px;}
+.fp-opt{
+  font:inherit; font-size:0.875rem; padding:8px 0; border:1px solid var(--border);
+  background:var(--chip); color:var(--text); border-radius:9px; cursor:pointer; transition:.15s;
+}
+.fp-opt:hover{background:var(--accent); color:#fff; border-color:var(--accent);}
+.fp-opt.on{background:var(--primary); color:#fff; border-color:var(--primary); font-weight:800;}
+
+/* 容器 */
+.container{
+  max-width:880px; margin:0 auto;
+  flex:1 1 auto;
+  padding:calc(env(safe-area-inset-top,0) + 58px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom,0) + 24px);
+}
+section.page{display:none;}
+section.page.active{display:block; animation:pageIn .38s cubic-bezier(.22,.61,.36,1);}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* 页面标题 */
+.page-title{
+  font-size:1.438rem; font-weight:800; letter-spacing:.5px;
+  color:var(--text); margin:6px 2px 16px;
+  display:flex; align-items:center; gap:10px;
+}
+.page-title .dot{width:9px;height:22px;border-radius:5px;background:linear-gradient(var(--primary),var(--accent));}
+
+/* ============ 首页目录 ============ */
+.home-hero{
+  text-align:center; padding:26px 10px 10px;
+}
+.home-hero .lotus{font-size:2.125rem;}
+.home-hero h1{font-size:1.562rem;font-weight:800;letter-spacing:2px;margin:8px 0 4px;color:var(--text);}
+.home-hero p{color:var(--text-muted);font-size:0.875rem;margin:0;}
+.dir-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-top:14px;
+}
+.dir-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px 16px;
+  box-shadow:var(--shadow); cursor:pointer;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  display:flex; flex-direction:column; gap:6px; position:relative; overflow:hidden;
+}
+.dir-card:active{transform:scale(.975);}
+.dir-card:hover{box-shadow:var(--shadow-md);border-color:var(--accent);}
+.dir-card .ic{
+  width:44px;height:44px;border-radius:13px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(139,111,62,.35);
+}
+.dir-card .ic svg{width:24px;height:24px;}
+.dir-card h3{font-size:1.062rem;font-weight:800;color:var(--text);margin:2px 0 0;letter-spacing:.5px;}
+.dir-card p{font-size:0.781rem;color:var(--text-muted);line-height:1.55;margin:0;}
+.dir-card .go{
+  position:absolute; right:14px; top:16px; color:var(--text-muted);
+  display:flex; align-items:center;
+}
+.dir-card .go svg{width:18px;height:18px;}
+.stat-row{
+  display:grid; grid-template-columns:repeat(5,1fr); gap:9px;
+  margin-top:16px;
+}
+.stat{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:13px 6px; text-align:center;
+  box-shadow:var(--shadow);
+}
+.stat .n{font-size:1.5rem;font-weight:800;color:var(--accent);line-height:1;}
+.stat .l{font-size:0.688rem;color:var(--text-muted);margin-top:5px;letter-spacing:.5px;}
+@media(max-width:560px){
+  .dir-grid{grid-template-columns:1fr;}
+  .stat .n{font-size:1.25rem;}
+  .page-title{font-size:1.25rem; margin-top:2px; margin-bottom:12px;}
+  .container{padding-left:14px; padding-right:14px;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0) + 20px);}
+}
+/* 字体放大时防止横向溢出 */
+.container{
+  max-width:100%;
+  width:100%;
+}
+
+/* ============ 底部导航 ============ */
+nav.bottom-nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:80;
+  min-height:var(--nav-h);
+  background:color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter:saturate(180%) blur(14px);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--border-strong);
+  display:flex; align-items:stretch;
+  padding:6px 4px calc(8px + env(safe-area-inset-bottom,0));
+  box-shadow:0 -4px 22px rgba(60,40,15,.10);
+  transform:translateZ(0); will-change:transform;
+}
+/* PWA 全屏模式下，确保导航栏贴底并预留 Home 指示条空间 */
+@media(display-mode:standalone){
+  nav.bottom-nav{
+    padding-bottom:calc(env(safe-area-inset-bottom,0) + 14px);
+    background:color-mix(in srgb, var(--surface) 96%, transparent);
+  }
+}
+.nav-btn{
+  flex:1; border:none; background:transparent; cursor:pointer;
+  font-family:inherit; color:var(--text-muted);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  position:relative; border-radius:13px; padding:4px 2px;
+  transition:color .2s,background .2s;
+}
+.nav-btn .ico{width:23px;height:23px;display:flex;align-items:center;justify-content:center;}
+.nav-btn .ico svg{width:23px;height:23px;}
+.nav-btn .lbl{font-size:0.688rem;font-weight:600;letter-spacing:.5px;line-height:1;}
+.nav-btn.active{color:var(--primary);background:var(--chip-active);}
+.nav-btn.active::before{
+  content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:22px; height:3px; border-radius:3px; background:var(--primary);
+}
+.nav-btn:active{background:var(--chip);}
+
+/* ============ 论典详学 ============ */
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tabs button{
+  flex:0 0 auto; background:var(--surface); border:1px solid var(--border);
+  color:var(--text-2); font-family:inherit; font-size:0.844rem; font-weight:600;
+  padding:9px 15px; border-radius:30px; cursor:pointer; white-space:nowrap;
+  transition:.2s; letter-spacing:.5px;
+}
+.cat-tabs button:hover{border-color:var(--accent);}
+.cat-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(139,111,62,.3);}
+.cat-info{font-size:0.844rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:14px;line-height:1.65;}
+.acc{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin:11px 0; overflow:hidden;
+  box-shadow:var(--shadow); transition:box-shadow .2s;
+}
+.acc.open{box-shadow:var(--shadow-md);}
+.acc-head{
+  cursor:pointer; padding:15px 16px; display:flex; align-items:center; gap:11px;
+  background:var(--surface-2); transition:background .2s;
+}
+.acc-head:active{background:var(--chip);}
+.acc-head .idx{color:var(--accent);font-weight:800;font-size:1rem;min-width:24px;}
+.acc-head .dh{font-size:1.062rem;font-weight:800;color:var(--text);letter-spacing:.5px;}
+.acc-head .sn{font-size:0.719rem;color:var(--text-muted);font-style:italic;font-weight:400;}
+.imp-tag{font-size:0.625rem;font-weight:700;color:#fff;background:var(--danger);padding:2px 7px;border-radius:20px;letter-spacing:.5px;}
+.acc-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.acc.open .acc-head .arr{transform:rotate(90deg);color:var(--primary);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+.acc.open .acc-body{max-height:6000px;padding:4px 16px 18px;}
+.acc-body p.desc{font-size:0.938rem;color:var(--text-2);line-height:1.85;margin:12px 0;}
+.acc-body p.desc strong{color:var(--primary-dark);}
+.scene-title{font-size:0.812rem;font-weight:800;color:var(--primary);margin:14px 0 8px;display:flex;align-items:center;gap:6px;}
+.scene-title::before{content:"";width:4px;height:15px;border-radius:3px;background:var(--accent);}
+.scenes{list-style:none;padding:0;margin:0;display:grid;gap:7px;}
+.scenes li{font-size:0.875rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:9px 12px 9px 30px;position:relative;line-height:1.65;}
+.scenes li::before{content:"◆";position:absolute;left:12px;top:9px;color:var(--accent);font-size:0.562rem;}
+.use-block{
+  margin-top:15px; padding:15px 16px;
+  background:linear-gradient(180deg,var(--surface-2),var(--chip));
+  border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  border-left:4px solid var(--accent);
+}
+.use-title{font-weight:800;color:var(--primary-dark);font-size:0.969rem;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.use-sub{font-size:0.75rem;font-weight:800;color:var(--accent);margin:11px 0 5px;padding-left:9px;border-left:3px solid var(--accent);}
+.use-scene{font-size:0.906rem;color:var(--text);line-height:1.8;margin:0;}
+.use-apply{font-size:0.906rem;color:var(--text-2);line-height:1.85;margin:0;}
+
+/* ============ 融会贯通 ============ */
+.rel-intro{font-size:0.875rem;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;margin-bottom:16px;line-height:1.7;}
+.sec-label{font-size:0.812rem;font-weight:800;color:var(--primary);letter-spacing:1px;margin:20px 2px 10px;display:flex;align-items:center;gap:7px;}
+.sec-label::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--accent);}
+.graph-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.graph-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:11px 11px 6px; box-shadow:var(--shadow); cursor:pointer; transition:box-shadow .2s,transform .15s;
+  position:relative;
+}
+.graph-card:active{transform:scale(.98);}
+.graph-card:hover{box-shadow:var(--shadow-md);}
+.graph-card .gc-title{font-size:0.812rem;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px;letter-spacing:.5px;}
+.graph-card svg{width:100%;height:auto;}
+.graph-card .zoom{position:absolute;right:9px;top:9px;color:var(--text-muted);opacity:.5;}
+.graph-card .zoom svg{width:16px;height:16px;}
+@media(max-width:560px){.graph-grid{grid-template-columns:1fr;}}
+
+.rel-nav{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 14px;}
+.rel-nav button{
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-2); font-family:inherit; font-size:0.812rem; font-weight:600;
+  padding:8px 13px; border-radius:20px; cursor:pointer; transition:.2s; letter-spacing:.5px;
+}
+.rel-nav button:hover{border-color:var(--accent);}
+.rel-nav button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.rel-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:18px 18px; margin:8px 0 16px;
+  box-shadow:var(--shadow);
+}
+.rel-card h3{font-size:1.125rem;font-weight:800;color:var(--primary-dark);letter-spacing:.5px;margin:0 0 12px;line-height:1.5;}
+.rel-body{font-size:0.938rem;color:var(--text);line-height:1.9;}
+.rel-table-wrap{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch;}
+table.rel-table{width:100%;border-collapse:collapse;font-size:0.844rem;background:var(--surface-2);border-radius:var(--radius-xs);overflow:hidden;}
+table.rel-table th{background:var(--primary);color:#fff;padding:10px 12px;text-align:left;font-weight:700;letter-spacing:.5px;}
+table.rel-table td{padding:9px 12px;border-top:1px solid var(--border);color:var(--text-2);vertical-align:top;}
+table.rel-table tbody tr:nth-child(even){background:var(--surface-3);}
+
+/* 图放大 modal */
+#graphModal{
+  position:fixed; inset:0; z-index:120; display:none;
+  background:rgba(20,15,8,.78); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:20px;
+}
+#graphModal.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#graphModal .gm-inner{
+  background:var(--surface); border-radius:var(--radius); max-width:560px; width:100%;
+  max-height:90vh; overflow:auto; padding:18px; box-shadow:var(--shadow-lg);
+}
+#graphModal .gm-title{font-size:1.062rem;font-weight:800;color:var(--primary-dark);margin-bottom:10px;text-align:center;}
+#graphModal svg{width:100%;height:auto;}
+#graphModal .gm-close{
+  position:absolute; top:calc(env(safe-area-inset-top,0) + 8px); right:10px; color:#fff; font-size:1.75rem; cursor:pointer;
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  z-index:130;
+}
+#graphModal .gm-text{font-size:0.844rem;color:var(--text-2);line-height:1.9;margin-top:14px;background:var(--surface-2);border-radius:var(--radius-xs);padding:12px 14px;}
+#graphModal .drill-tip{margin-top:16px;font-size:0.812rem;color:var(--primary);font-weight:700;text-align:center;}
+#graphModal .drill-grp{margin-top:13px;}
+#graphModal .drill-h{font-size:0.844rem;font-weight:800;color:var(--primary-dark);margin-bottom:9px;}
+#graphModal .drill-chips{display:flex;flex-wrap:wrap;gap:7px;}
+#graphModal .drill-chip{font:inherit;font-size:0.781rem;padding:5px 11px;border:1px solid var(--border);background:var(--chip);color:var(--text);border-radius:20px;cursor:pointer;transition:.18s;}
+#graphModal .drill-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px);}
+.graph-hint{font-size:0.781rem;color:var(--primary);text-align:center;margin-top:9px;opacity:.85;letter-spacing:.4px;}
+
+/* ============ 核心重点 ============ */
+.kp{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:17px 18px; margin:12px 0;
+  box-shadow:var(--shadow); border-left:4px solid var(--accent);
+}
+.kp h3{font-size:1.062rem;font-weight:800;color:var(--primary-dark);margin:0 0 10px;letter-spacing:.5px;}
+.kp .plain{font-size:0.906rem;color:var(--text);line-height:1.8;margin:8px 0;}
+.kp .meta{font-size:0.875rem;color:var(--text-2);line-height:1.8;margin:8px 0;background:var(--surface-2);border-radius:var(--radius-xs);padding:10px 13px;}
+.kp .lab{font-weight:800;color:var(--primary);}
+
+/* ============ 场景应用 ============ */
+.scn{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin:12px 0; overflow:hidden; box-shadow:var(--shadow);
+}
+.scn-head{
+  padding:15px 16px; cursor:pointer; font-weight:800; color:var(--text);
+  font-size:0.969rem; display:flex; gap:10px; align-items:center; background:var(--surface-2);
+  transition:background .2s;
+}
+.scn-head:active{background:var(--chip);}
+.scn-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.scn.open .scn-head .arr{transform:rotate(90deg);color:var(--primary);}
+.scn-body{max-height:0;overflow:hidden;transition:max-height .4s ease;padding:0 16px;}
+.scn.open .scn-body{max-height:3000px;padding:6px 0 16px;}
+.scn-body .row{margin:0 0 14px;padding:13px 15px;background:var(--surface-2);border-radius:var(--radius-xs);border-left:3px solid var(--accent);font-size:0.906rem;color:var(--text-2);line-height:1.95;}
+.scn-body .row:last-child{margin-bottom:0;}
+.scn-body .lab{display:block;font-weight:800;color:var(--primary);font-size:0.844rem;margin-bottom:7px;letter-spacing:.6px;}
+/* 现代场景连线 */
+.kp-body .modern,.scn-body .modern{border-left:3px solid var(--accent);background:var(--chip);border-radius:var(--radius-xs);padding:10px 13px;margin:8px 0;font-size:0.844rem;color:var(--text);line-height:1.85;}
+.kp-body .modern .lab,.scn-body .modern .lab{color:var(--primary-dark);font-weight:800;}
+
+/* ============ 考试题目 ============ */
+.exam-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow);}
+.exam-box p{font-size:0.906rem;color:var(--text-2);margin:8px 0;}
+.exam-box .muted{color:var(--text-muted);font-size:0.812rem;}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;
+  font-family:inherit;font-size:0.969rem;font-weight:700;letter-spacing:1px;
+  padding:13px 30px;border-radius:30px;cursor:pointer;margin-top:14px;
+  box-shadow:0 6px 18px rgba(139,111,62,.35);transition:transform .15s,box-shadow .2s;
+}
+.btn-primary:hover{box-shadow:0 8px 22px rgba(139,111,62,.45);}
+.btn-primary:active{transform:scale(.97);}
+.exam-progress{font-size:0.812rem;color:var(--text-muted);text-align:center;margin:6px 0 14px;font-weight:600;}
+.q{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin:13px 0;}
+.qt{font-size:0.969rem;font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.6;}
+.typ{display:inline-block;font-size:0.688rem;font-weight:700;color:var(--primary);background:var(--chip);padding:2px 9px;border-radius:12px;margin-right:8px;letter-spacing:.5px;}
+.opt{
+  display:flex;align-items:center;gap:11px;padding:12px 14px;margin:8px 0;
+  background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-xs);
+  cursor:pointer;font-size:0.906rem;color:var(--text-2);transition:border-color .15s,background .15s;
+}
+.opt:active{border-color:var(--accent);}
+.opt input{accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;}
+.opt.sel{border-color:var(--primary);background:var(--chip-active);color:var(--text);}
+.opt.correct{border-color:var(--success);background:var(--success-bg);color:var(--text);}
+.opt.wrong{border-color:var(--danger);background:var(--danger-bg);color:var(--text);}
+.qbtn{
+  margin-top:10px;background:transparent;border:1px solid var(--accent);color:var(--primary);
+  font-family:inherit;font-size:0.812rem;font-weight:700;padding:8px 18px;border-radius:20px;cursor:pointer;letter-spacing:.5px;transition:.2s;
+}
+.qbtn:hover{background:var(--chip);}
+.exp{display:none;margin-top:11px;padding:12px 15px;background:var(--chip);border-left:4px solid var(--accent);border-radius:var(--radius-xs);font-size:0.875rem;color:var(--text);line-height:1.8;}
+.exp.show{display:block;animation:fadeIn .3s;}
+.result{text-align:center;padding:10px;}
+.result .score{font-size:3.375rem;font-weight:800;color:var(--primary);line-height:1;}
+.result .score span{font-size:1.375rem;color:var(--text-muted);}
+.result .eval{font-size:1rem;font-weight:700;color:var(--text);margin:12px 0;}
+.result .muted{font-size:0.844rem;color:var(--text-muted);margin-top:8px;}
+
+
+/* 标题图标 */
+.page-title .pt-ico{width:23px;height:23px;color:var(--primary);flex:none;}
+.page-title .dot{display:none;}
+
+/* ============ 论典详学 · 层级 ============ */
+.cat-block{border:1px solid var(--border);border-radius:var(--radius);margin:14px 0;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);}
+.cat-head{display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;background:linear-gradient(135deg,var(--surface-2),var(--surface-3));}
+.cat-head:active{background:var(--chip);}
+.cat-name{font-size:1.062rem;font-weight:800;color:var(--primary-dark);letter-spacing:.5px;}
+.cat-count{font-size:0.75rem;color:var(--text-muted);background:var(--chip);padding:2px 9px;border-radius:20px;}
+.cat-head .arr{margin-left:auto;color:var(--text-muted);transition:transform .3s;font-size:0.812rem;}
+.cat-block.open .cat-head .arr{transform:rotate(90deg);color:var(--primary);}
+.cat-body{padding:8px 14px 16px;}
+.cat-block:not(.open) .cat-body{display:none;}
+.cat-info{font-size:0.844rem;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin:10px 0 6px;line-height:1.65;}
+.grp{margin-top:4px;}
+.grp-title{font-size:0.875rem;font-weight:800;color:var(--accent);border-left:3px solid var(--accent);padding-left:9px;margin:14px 0 4px;letter-spacing:.5px;}
+.grp-title .gc{color:var(--text-muted);font-weight:600;font-size:0.75rem;margin-left:6px;}
+.acc-head .grp-tag{font-size:0.625rem;font-weight:700;color:#fff;background:var(--accent);padding:2px 7px;border-radius:20px;letter-spacing:.5px;}
+.rel-note{background:var(--surface-2);border-left:4px solid var(--primary);border-radius:var(--radius-xs);padding:11px 13px;margin:6px 0 12px;font-size:0.875rem;color:var(--text-2);line-height:1.75;}
+.rel-note .lab{color:var(--primary-dark);font-weight:800;}
+
+/* 核心重点折叠 */
+.kp-body .plain{font-size:0.906rem;color:var(--text);line-height:1.8;margin:8px 0;}
+.kp-body .meta{font-size:0.875rem;color:var(--text-2);line-height:1.8;margin:8px 0;background:var(--surface-2);border-radius:var(--radius-xs);padding:10px 13px;}
+.kp-body .lab{font-weight:800;color:var(--primary);}
+
+/* 关系图文字 */
+.graph-text{font-size:0.812rem;color:var(--text-2);line-height:1.7;margin-top:8px;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-xs);border:1px solid var(--border);}
+.graph-card .gsvg{cursor:pointer;}
+.vein-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+
+/* 考试筛选 */
+.exam-filter{margin:6px 0 14px;}
+.exam-filt-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;align-items:center;}
+.exam-filt-label{font-size:0.781rem;font-weight:800;color:var(--primary-dark);letter-spacing:.4px;width:100%;margin-bottom:4px;}
+.exam-filter button{background:var(--surface);border:1px solid var(--border);color:var(--text-2);font-family:inherit;font-size:0.781rem;font-weight:600;padding:7px 11px;border-radius:18px;cursor:pointer;transition:.18s;letter-spacing:.3px;}
+.exam-filter button:hover{border-color:var(--accent);}
+.exam-filter button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.exam-filter button.sub{font-size:0.719rem;padding:5px 9px;border-radius:14px;background:var(--chip);}
+.exam-filter button.sub.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.exam-batch{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:4px 8px;}
+.exam-batch span{font-size:0.75rem;color:var(--text-muted);font-weight:600;}
+.exam-batch select{font:inherit;font-size:0.781rem;border:none;background:transparent;color:var(--primary);font-weight:700;cursor:pointer;outline:none;}
+.dh-link{margin-top:8px;}
+.flash{animation:flash 1.5s;}
+@keyframes flash{0%,100%{box-shadow:var(--shadow);}30%{box-shadow:0 0 0 3px var(--accent);}}
+.q .qmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.q .qnum{font-size:0.75rem;font-weight:800;color:var(--accent);letter-spacing:.3px;margin-bottom:4px;}
+.q .dhlink{font-size:0.781rem;}
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" aria-label="切换主题"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z"/></svg></button>
+<button class="font-toggle" id="fontToggle" aria-label="字体大小">字</button>
+<div class="font-pop" id="fontPop"><div class="fp-title">字体大小</div><div class="fp-opts" id="fpOpts"></div></div>
+<div class="container">
+
+  <!-- 论典详学 -->
+  <section class="page active" id="detail">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8 12 13 3 8Z"/><path d="M3 13 12 18 21 13"/><path d="M3 8v8"/><path d="M21 8v8"/></svg></span>论典详学</div>
+    <div class="rel-intro">《菩提道次第广论》以「由凡夫一步步行至成佛」为总纲，依三士道次第开演。下方按「道次第 → 板块 → 法义」层层展开，每个条目标注其所属阶段与「关联及定位」，点开可见定义、生活场景与修学落点。</div>
+    <div id="detailList"></div>
+  </section>
+
+  <!-- 融会贯通 -->
+  <section class="page" id="relation">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="6" r="2.4"/><circle cx="18.5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7.6 7.2 10.4 16"/><path d="M16.4 7.2 13.6 16"/><path d="M7.9 6h8.2"/></svg></span>融会贯通</div>
+    <div class="rel-intro">道次第的法义并非孤立名词，而是一张紧密相连的「成佛路线图」。下方先以三士道、三主要道、七重因果等逻辑图直观呈现，再沿修学脉络逐层拆解前后法义之间的关系、作用机制与修行次第。</div>
+    <div class="sec-label">逻辑关系图（点击可放大）</div>
+    <div class="graph-grid" id="graphGrid"></div>
+    <div class="sec-label">法理脉络（逻辑图 + 详解）</div>
+    <div class="vein-grid" id="veinGrid"></div>
+  </section>
+
+  <!-- 核心重点 -->
+  <section class="page" id="keypoint">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 1 4 10.5c-.9.9-1.4 1.8-1.4 2.5H9.4c0-.7-.5-1.6-1.4-2.5A6 6 0 0 1 12 3Z"/></svg></span>核心重点</div>
+    <div class="rel-intro">点击标题展开／收起。十项核心，用通俗语言与日常比喻，串起《广论》的宗旨与修行落点。</div>
+    <div id="kpList"></div>
+  </section>
+
+  <!-- 场景应用 -->
+  <section class="page" id="scenario">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 11.2 11.2 8.5 15.5 12.8 12.8Z"/></svg></span>场景应用</div>
+    <div id="scnList"></div>
+  </section>
+
+  <!-- 考试题目 -->
+  <section class="page" id="exam">
+    <div class="page-title"><span class="pt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2 2 4-4.2"/></svg></span>考试题目</div>
+    <div class="exam-box" id="examBox">
+      <div id="examStart">
+        <p>本题库共 <strong>114</strong> 题，覆盖全部 28 个条目（每法≥2 题、重点法另有深度题）及法之间的关系。可按板块筛选后开始答题，每题作答后可查看解析，并跳转回对应论典。</p>
+        <p class="muted">单选每题 2 分、多选每题 4 分（须全选对），按正确率评定。多选至少选两项方为有效。</p>
+        <div class="exam-filter" id="examFilter"></div>
+        <div style="text-align:center"><button class="btn-primary" id="startExam">开始答题</button></div>
+      </div>
+      <div id="examMain" style="display:none;">
+        <div style="margin-bottom:12px"><button class="qbtn" id="backToFilter">← 返回分类筛选</button></div>
+        <div class="exam-progress" id="examProgress"></div>
+        <div id="examQs"></div>
+        <div style="text-align:center"><button class="btn-primary" id="submitExam">提交答卷</button></div>
+      </div>
+      <div id="examResult" style="display:none;"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-btn" data-page="detail"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8 12 13 3 8Z"/><path d="M3 13 12 18 21 13"/><path d="M3 8v8"/><path d="M21 8v8"/></svg></span><span class="lbl">论典</span></button>
+  <button class="nav-btn" data-page="relation"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="6" r="2.4"/><circle cx="18.5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7.6 7.2 10.4 16"/><path d="M16.4 7.2 13.6 16"/><path d="M7.9 6h8.2"/></svg></span><span class="lbl">贯通</span></button>
+  <button class="nav-btn" data-page="keypoint"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 1 4 10.5c-.9.9-1.4 1.8-1.4 2.5H9.4c0-.7-.5-1.6-1.4-2.5A6 6 0 0 1 12 3Z"/></svg></span><span class="lbl">重点</span></button>
+  <button class="nav-btn" data-page="scenario"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 11.2 11.2 8.5 15.5 12.8 12.8Z"/></svg></span><span class="lbl">场景</span></button>
+  <button class="nav-btn" data-page="exam"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2 2 4-4.2"/></svg></span><span class="lbl">考试</span></button>
+</nav>
+
+<!-- 图放大 -->
+<div id="graphModal">
+  <div class="gm-inner">
+    <div class="gm-close" id="gmClose">×</div>
+    <div id="gmInner"></div>
+  </div>
+</div>
+<script>
+// ===== 数据 =====
+const CATS = [{"name": "道前基础", "short": "基础", "count": 9, "intro": "入道第一步：先端正闻思心态、依止善知识、认识暇满人身，并建立全论的总路线图（三士道）。", "dharmas": [{"name": "释题·题解", "imp": true, "desc": ["「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "适合一切根器：求世间福报者、求解脱者、发菩提心者，皆可依此次第得大利益。"], "rel": "全论总纲，标示『由凡夫一步步行至成佛』的明确路线。", "现代": "想系统掌握任何学问或修行，先要有一张『总路线图』：知道起点、阶段与终点，才不至于东学一点西学一点、原地打转。", "_cat": "道前基础", "_short": "基础"}, {"name": "造者殊胜", "sn": "宗喀巴大师", "desc": ["本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。", "宗喀巴融《现观庄严论》与《菩提道炬论》之精髓，集印度与西藏教法之大成。"], "rel": "说明法脉清净、师承有据，令人信受。", "现代": "判断一门学问或导师是否可信，看其来源与传承是否清楚、是否站得住脚，而非只看名气。", "_cat": "道前基础", "_short": "基础"}, {"name": "教授殊胜", "desc": ["本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。", "小乘是出离心之基，显教是密教之基；无显教基础而直修密，难有成就。"], "rel": "显密大小乘，皆归于此一圆满道体。", "现代": "面对多元观点（不同流派、学科、文化），不必急着二分对立；先看它们是否指向同一根本，再善巧取舍。", "_cat": "道前基础", "_short": "基础"}, {"name": "听闻轨理", "desc": ["闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。", "唯有见空性的智慧能根本解决问题，世俗的分别思惟只治标。"], "rel": "闻法心态——以求解脱心领纳正法。", "现代": "学习任何东西，先问『我为什么学、以什么心态学』：带着解决问题的真实渴求，吸收才扎实；只为凑热闹则过耳即忘。", "_cat": "道前基础", "_short": "基础"}, {"name": "说法轨理", "desc": ["说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。"], "rel": "闻说二者心行清净，法乃殊胜。", "现代": "当你要分享、教学或带人时，动机干净（想帮人而非显自己）才能让对方真正受用，自己也增长。", "_cat": "道前基础", "_short": "基础"}, {"name": "亲近善知识", "imp": true, "desc": ["正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。", "依师需善根福德因缘，亦须弟子具足德相。"], "rel": "入道根本——无师则不知修处的第一步。", "现代": "想真正学好一件事（专业、健身、修行），找一位靠谱的教练/导师带，比自己乱摸索快得多；同时自己也要做『好学生』。", "_cat": "道前基础", "_short": "基础"}, {"name": "修习轨理·六加行", "desc": ["修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "金洲大师所传，为正式修定修观前的准备。"], "rel": "把修行落为日常可操作的仪轨。", "现代": "做任何需要长期投入的事，先布置好环境与启动仪式（固定角落、固定时段），能大幅降低『三天打鱼』的失败率。", "_cat": "道前基础", "_short": "基础"}, {"name": "暇满人身", "imp": true, "desc": ["『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。", "得此人身极难，义大难得，当善加利用。"], "rel": "修行的前提条件——人身难得，勿空过。", "现代": "你拥有健康、自由、学习资源，已是极大的『暇满』；别把时间耗在纯消耗的事上，用它做真正增值的事。", "_cat": "道前基础", "_short": "基础"}, {"name": "道次引导", "desc": ["本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "下士道求人天果报，中士道求出离，上士道发菩提心行六度。"], "rel": "全论骨架——三士道一贯之道。", "现代": "任何大目标都该拆成阶梯：先打底、再进阶、最后升维，不要想一步登天。", "_cat": "道前基础", "_short": "基础"}]}, {"name": "下士道", "short": "下士", "count": 4, "intro": "为不堕恶趣、得人天果报而修：念死无常、思三恶趣苦、皈依三宝、深信业果。", "dharmas": [{"name": "念死无常", "imp": true, "desc": ["常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "未修念死之过：恒执常乐，虚耗暇满。"], "rel": "下士道初门，怖畏恶趣之因。", "现代": "用『截止日期思维』对抗拖延与无意义的忙碌：设想某天不得不停下，今天该把时间给什么？", "_cat": "下士道", "_short": "下士"}, {"name": "三恶趣苦", "desc": ["地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。", "不了解恶道苦，则怖畏心不生，不愿断恶。"], "rel": "由畏苦而愿断恶。", "现代": "想清楚『最坏后果』，才有动力避开危险行为（如熬夜、债务、关系透支）；知道痛，才肯改。", "_cat": "下士道", "_short": "下士"}, {"name": "皈依三宝", "imp": true, "desc": ["皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "由念死、畏恶趣，自然生起皈投三宝之心。"], "rel": "下士道枢纽——以三宝为究竟依怙。", "现代": "人需要可信赖的『锚点』：在变动与不确定的世界里，找到一套自己真正信服的原则与归属（而非随波逐流）。", "_cat": "下士道", "_short": "下士"}, {"name": "深信业果", "imp": true, "desc": ["因果四特质：业决定、增长、未造不遇、已造不失。", "信因果是修行最基础观念：行善得善、造恶感苦，丝毫不爽。"], "rel": "下士道核心——一切修行建立在因果上。", "现代": "职场与人际也是『因果』：你种下的专业与信用，终会回报；投机与敷衍，也终会显形。信因果，才肯踏实。", "_cat": "下士道", "_short": "下士"}]}, {"name": "中士道", "short": "中士", "count": 6, "intro": "为解脱三界而修：认出轮回皆苦（苦谛）、烦恼是集（集谛）、十二缘起锁链，生起迫切出离心，依戒定慧三学对治。", "dharmas": [{"name": "思惟苦谛", "desc": ["三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。", "有智者视善趣亦如恶趣而厌离，方求解脱。"], "rel": "中士道初门——认出轮回本质皆苦。", "现代": "把『永远在追逐下一个快乐』的循环看清楚：升职、购物、刷手机带来的满足都很短；真正的问题是停不下来的匮乏感。", "_cat": "中士道", "_short": "中士"}, {"name": "思惟集谛", "desc": ["集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "有烦恼则造业，业力牵动种子现起，成轮回锁链。"], "rel": "苦之因——烦恼与业。", "现代": "情绪一来就口出恶言、冲动消费——看清『烦恼→行动→苦果』的链条，才有机会在中间踩刹车。", "_cat": "中士道", "_short": "中士"}, {"name": "十二缘起", "imp": true, "desc": ["无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "无明执实我实法，是轮回根本；顺观知来源，逆观知还灭。"], "rel": "以缘起理显轮回如何形成、如何断除。", "现代": "很多困境是『链条』：一个念头→一个习惯→一种处境。想改变结果，就逆向找到最早能切断的那一环。", "_cat": "中士道", "_short": "中士"}, {"name": "出离心", "imp": true, "desc": ["中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。", "出离心须迫切——如处火宅，不容拖延。"], "rel": "中士道之心要——真想解脱。", "现代": "定期问自己：现在的生活轨迹，是在靠近想要的人生，还是在惯性滑行？『出离』= 主动跳出消耗你的环境/关系/习惯。", "_cat": "中士道", "_short": "中士"}, {"name": "戒定慧三学", "desc": ["次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。", "持戒清净是得定、发慧的先决条件。"], "rel": "解脱道的修学次第。", "现代": "任何自律都同理：先立规矩（戒）稳住状态，才有专注（定），专注久了自己会冒出洞察（慧）。", "_cat": "中士道", "_short": "中士"}, {"name": "不净观", "desc": ["贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。", "以厌恶种子降伏贪爱种子，令心不与其相应。"], "rel": "对治贪烦恼之方便。", "现代": "对抗物欲与外貌焦虑，可练习『拆穿幻象』：广告与滤镜包装出的『美好』，还原其本来成分，执取自然淡。", "_cat": "中士道", "_short": "中士"}]}, {"name": "上士道", "short": "上士", "count": 5, "intro": "由自利转向利他：入大乘门发菩提心，以七重因果或自他交换发起，至任运平等之量，受戒恒持。", "dharmas": [{"name": "入大乘门发心", "imp": true, "desc": ["中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。", "佛说解脱道，正是为令众生顺利入大乘、真实利他。"], "rel": "上士道之门——由自利转向利他。", "现代": "能力越强，越要问『为谁用』：把专业技能从『只为自己升职』扩展到『解决他人真实问题』，格局与机会都会变大。", "_cat": "上士道", "_short": "上士"}, {"name": "七重因果发心", "imp": true, "desc": ["阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。", "视一切众生如往世慈母，方能真实生起利他之心。"], "rel": "发菩提心方法之一（因果次第）。", "现代": "真正关心一个人，从『记得TA的好、想回报』开始；把这份心从亲友扩到更多人，就是日常的『菩提心练习』。", "_cat": "上士道", "_short": "上士"}, {"name": "自他交换", "imp": true, "desc": ["寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "是最速同时圆满自利利他之法；只为己则生贪瞋痴、造恶业。"], "rel": "发菩提心方法之二（施受法）。", "现代": "与人冲突时做『换位思考』的实修：吸进对方的苦与情绪、呼出善意与帮助，怨结往往当场松化。", "_cat": "上士道", "_short": "上士"}, {"name": "菩提心发起之量", "desc": ["菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "无对象差别、无勉强计较，方名任运。"], "rel": "检定发心是否真实圆满。", "现代": "衡量一件事是否真做成：看你是否『不假思索、对谁都做』，还是只在方便或有利时才做。", "_cat": "上士道", "_short": "上士"}, {"name": "受菩萨戒·仪轨", "desc": ["依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"], "rel": "以戒恒守护持菩提心。", "现代": "把『想做的事』落成『公开承诺+固定节奏』（如每周公益、每月复盘），靠外部约束把初心留住。", "_cat": "上士道", "_short": "上士"}]}, {"name": "发心实修", "short": "实修", "count": 4, "intro": "发心之后的日常保任：以世俗、胜义二种菩提心双运，转恶缘为道用，以五力熏修善根，直至心心念念在众生。", "dharmas": [{"name": "世俗·胜义菩提心", "desc": ["世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。", "有我便难发心；证空性方能彻底无我。"], "rel": "菩提心之二重体性。", "现代": "很多焦虑来自『我执』：把暂时的评价、得失当成『我』的全部。练习『这不是真正的我』，执取就松。", "_cat": "发心实修", "_short": "实修"}, {"name": "转恶缘为菩提道", "imp": true, "desc": ["于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。", "无恶缘则不能促发、圆满菩提心。"], "rel": "以违缘为道用。", "现代": "被坑、被误会、遇烂人烂事——不急着怨，先想『这正好练我的耐性/边界/放下』；把烂事变成修行的教材。", "_cat": "发心实修", "_short": "实修"}, {"name": "五力修习", "desc": ["以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。"], "rel": "日常护持发心之五力。", "现代": "想养成一个好习惯/好心态，用『五力』：明确目标(牵引)、天天练(修习)、做善事(白法)、对治退心(破斥)、回向坚持(愿力)。", "_cat": "发心实修", "_short": "实修"}, {"name": "菩提心修成之量", "desc": ["检定：心心念念在众生而非自己；上求佛道只为下化众生，非为自成就。", "念念护念众生，方名发心圆满。"], "rel": "以『是否为众生』检心。", "现代": "每隔一阵自问：我现在的努力，有多少是真的为事、为人，有多少只是为自己脸面与安全感？把重心一点点挪向『利他』。", "_cat": "发心实修", "_short": "实修"}]}];
+const USE_MAP = {"念死无常": {"scene": "每天忙到没时间做真正重要的事，却说『以后再说』。", "apply": "如何用论典转换·应对·善用：\n把『我总有一天会停』当成硬截止日。每天睡前问：若今天就是最后一天，我花的时间值得吗？把最重要的那件事挪到前面，而不是永远排在『有空再』。"}, "深信业果": {"scene": "看到别人走捷径得利，自己也想跟着投机。", "apply": "如何用论典转换·应对·善用：\n信『业增长、已造不失』。捷径的甜头常伴隐藏的苦果；踏实种因，回报虽慢却稳。把每次选择当成在『种种子』，而不是赌一把。"}, "亲近善知识": {"scene": "自学很久没进展，却迟迟不肯找个老师或加入圈子。", "apply": "如何用论典转换·应对·善用：\n为想学的事找一位靠谱的人带：明确自己要什么、虚心请教、按对方指的点练。做『好学生』比当『独行侠』快十倍。"}, "暇满人身": {"scene": "刷手机一晚上过去，事后空落落的。", "apply": "如何用论典转换·应对·善用：\n认出这是难得的『闲暇』。每天留一段不被消耗的时间，做一件真正增值的事（读书、运动、陪伴），把人身用在刀刃上。"}, "出离心": {"scene": "明知一段关系/环境在消耗自己，却一直『等合适时机』才离开。", "apply": "如何用论典转换·应对·善用：\n练『出离思维』：问自己留下来是真有责任，还是惯性依恋？给一个明确期限，到期就果断跳出消耗你的东西。"}, "自他交换": {"scene": "和同事起冲突，越想越气，整晚睡不好。", "apply": "如何用论典转换·应对·善用：\n做施受法：吸气时想『把他此刻的委屈/愤怒吸进来我承担』，呼气时『把善意与帮助送给他』。怨气往往当场化开。"}, "转恶缘为菩提道": {"scene": "被人坑了钱、当众误会，第一反应是报复或崩溃。", "apply": "如何用论典转换·应对·善用：\n不急着怨。先想『这可能是旧恶缘成熟，正好修我的忍与放下』。把烂事当教材，练一次境界就长一分，而不是白受一次苦。"}, "五力修习": {"scene": "想养成读书/运动/冥想，总是三分钟热度。", "apply": "如何用论典转换·应对·善用：\n用五力：定目标(牵引)、每日练(修习)、做善事(白法)、对治退心(破斥)、回向坚持(愿力)。把『靠意志』换成『靠系统』。"}};
+const REL_NOTES = {};
+const GROUP_MAP = {};
+const GRAPH_META = [{"k": "threePaths", "t": "三士道修学次第"}, {"k": "threePrincipal", "t": "三主要道：出离心·菩提心·空正见"}, {"k": "sevenCausal", "t": "七重因果发心次第"}];
+const RELATION_GRAPHS = {"threePaths": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 268\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">道前基础</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">下士道</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">中士道</text><line x1=\"170.0\" y1=\"172\" x2=\"170.0\" y2=\"200\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"200\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"223.0\" fill=\"#fff\" text-anchor=\"middle\">上士道</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>", "threePrincipal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 204\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">出离心</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">菩提心</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">空正见</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>", "sevenCausal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 460\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">知母</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">念恩</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">报恩</text><line x1=\"170.0\" y1=\"172\" x2=\"170.0\" y2=\"200\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"200\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"223.0\" fill=\"#fff\" text-anchor=\"middle\">慈心</text><line x1=\"170.0\" y1=\"236\" x2=\"170.0\" y2=\"264\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"264\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"287.0\" fill=\"#fff\" text-anchor=\"middle\">悲心</text><line x1=\"170.0\" y1=\"300\" x2=\"170.0\" y2=\"328\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"328\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"351.0\" fill=\"#fff\" text-anchor=\"middle\">增上意乐</text><line x1=\"170.0\" y1=\"364\" x2=\"170.0\" y2=\"392\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"392\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"415.0\" fill=\"#fff\" text-anchor=\"middle\">菩提心</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>"};
+const GRAPH_TEXT = {"threePaths": "本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。", "threePrincipal": "宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。", "sevenCausal": "七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。"};
+const RELATIONS = [{"t": "三士道前后相承", "body": "下士道求人天果报，中士道求出离三界，上士道发菩提心行六度，三者前后相承。小乘是大乘的基础，显教是密教的基础；无下士、中士之基，上士菩提心与密乘悉地皆难成就。故本论由浅入深，令学者稳速入道。", "table": [["道次", "所修", "所证"], ["下士道", "十善、皈依、业果", "不堕恶趣·人天果报"], ["中士道", "出离心、戒定慧", "解脱三界"], ["上士道", "菩提心、六度", "成佛利他"]]}, {"t": "三主要道缺一不可", "body": "成佛须具三主要道：出离心令不贪著轮回，菩提心令不舍众生，空正见令不执实有。仅有出离心易堕小乘自了；仅有菩提心无空见则悲心执实、难臻究竟；仅有空见无悲心则落断灭。三者和合，方为大乘正道。", "table": [["主要道", "作用", "若缺之过"], ["出离心", "厌离轮回", "贪著生死"], ["菩提心", "利他大愿", "堕小乘自了"], ["空正见", "证无我", "执实成缚"]]}, {"t": "道前基础为入道根本", "body": "未入三士道前，先修道前基础：端正闻思心态（听闻、说法轨理）、依止具德善知识、珍重暇满人身、建立三士道总图。无师则盲修，无暇满则无修依，无总图则散乱无归。故道前基础是一切修学之根。", "table": [["基础", "要点", "为何重要"], ["依师", "具德善知识", "不盲修瞎练"], ["暇满", "人身难得", "修行之器"], ["总图", "三士道次第", "知所趣向"]]}];
+const VEIN_GRAPHS = {"threePaths": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 268\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">道前基础</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">下士道</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">中士道</text><line x1=\"170.0\" y1=\"172\" x2=\"170.0\" y2=\"200\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"200\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"223.0\" fill=\"#fff\" text-anchor=\"middle\">上士道</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>", "threePrincipal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 204\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">出离心</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">菩提心</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">空正见</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>", "sevenCausal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 340 460\" font-family=\"sans-serif\" font-size=\"13\"><rect x=\"60\" y=\"8\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"31.0\" fill=\"#fff\" text-anchor=\"middle\">知母</text><line x1=\"170.0\" y1=\"44\" x2=\"170.0\" y2=\"72\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"72\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"95.0\" fill=\"#fff\" text-anchor=\"middle\">念恩</text><line x1=\"170.0\" y1=\"108\" x2=\"170.0\" y2=\"136\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"136\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"159.0\" fill=\"#fff\" text-anchor=\"middle\">报恩</text><line x1=\"170.0\" y1=\"172\" x2=\"170.0\" y2=\"200\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"200\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"223.0\" fill=\"#fff\" text-anchor=\"middle\">慈心</text><line x1=\"170.0\" y1=\"236\" x2=\"170.0\" y2=\"264\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"264\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"287.0\" fill=\"#fff\" text-anchor=\"middle\">悲心</text><line x1=\"170.0\" y1=\"300\" x2=\"170.0\" y2=\"328\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"328\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"351.0\" fill=\"#fff\" text-anchor=\"middle\">增上意乐</text><line x1=\"170.0\" y1=\"364\" x2=\"170.0\" y2=\"392\" stroke=\"#C39A45\" stroke-width=\"2.5\" marker-end=\"url(#ar)\"/><rect x=\"60\" y=\"392\" width=\"220\" height=\"36\" rx=\"9\" fill=\"#8B6F3E\"/><text x=\"170.0\" y=\"415.0\" fill=\"#fff\" text-anchor=\"middle\">菩提心</text><defs><marker id=\"ar\" markerWidth=\"9\" markerHeight=\"9\" refX=\"4.5\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#C39A45\"/></marker></defs></svg>"};
+const VEIN_TEXT = {"threePaths": "本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。", "threePrincipal": "宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。", "sevenCausal": "七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。"};
+const DRILL = {"道前基础": ["亲近善知识", "暇满人身", "道次引导"], "下士道": ["念死无常", "三恶趣苦", "皈依三宝", "深信业果"], "中士道": ["思惟苦谛", "思惟集谛", "十二缘起", "出离心", "戒定慧三学", "不净观"], "上士道": ["入大乘门发心", "七重因果发心", "自他交换", "菩提心发起之量"], "三主要道": ["出离心", "入大乘门发心", "世俗·胜义菩提心"], "七重因果": ["七重因果发心"]};
+const KEYPOINTS = [{"t": "总纲：由凡至佛的明确路线", "plain": "本论把『成佛之道』拆成清晰次第：道前基础→下士道→中士道→上士道，从初修一直引导到成佛。", "meta": "《广论》即『菩提道次第』之广释，含摄一切佛法精要。", "比喻": "像一张从山脚到山顶的登山地图，标好了每一段营地。", "现代": "做任何大事先画『总路线图』：起点、阶段、终点清楚，才不会东一榔头西一棒槌、永远在山脚打转。"}, {"t": "道前基础：依师与暇满为入道根本", "plain": "正式修行前，先端正闻思心态、依止具德善知识、珍重暇满人身。无师则盲修，无暇满则无修器。", "meta": "亲近善知识、暇满人身、道次引导，是三士道之前的基础。", "比喻": "像盖楼先打地基，地基不稳楼上再漂亮也垮。", "现代": "学任何东西，先找对老师/圈子、确认自己有『时间精力』这个本钱，再谈进阶。"}, {"t": "下士道：念死无常、深信业果", "plain": "为不堕恶趣，常念死期不定、信因果四特质（业决定、增长、未造不遇、已造不失）。", "meta": "下士道以求人天果报、不堕恶趣为标的。", "比喻": "因果像种子，种瓜得瓜，且会翻倍增长。", "现代": "职场信用、人际关系都是『因果』：踏实种因终有回报，投机敷衍终会显形。"}, {"t": "中士道：认出轮回皆苦、烦恼是集", "plain": "三界唯苦，苦因是烦恼与业；贪瞋痴等十根本烦恼一念起便造业、牵动种子现起。", "meta": "苦谛、集谛、十二缘起，是生起出离心之所依。", "比喻": "烦恼→业→苦，像点着火的链条，一节节烧下去。", "现代": "看清『情绪→冲动→后果』的链条，才有机会在中间踩刹车，而不是事后懊悔。"}, {"t": "出离心：迫切想解脱，如处火宅", "plain": "中士道的心要是『真想出离』——像房子着火，不容『等退休再说』。", "meta": "出离心由思苦、思集、思缘起三法生起。", "比喻": "火宅中人不会先打包行李再逃，而是立刻跑。", "现代": "对消耗你的环境/习惯，别用『以后再说』拖延，给一个明确期限果断跳出。"}, {"t": "上士道之门：由自利转向利他", "plain": "中士解脱道是大乘基础；修完须回小向大，发菩提心、行六度，方名成佛之道。", "meta": "佛说解脱道，正为令众生顺利入大乘、真实利他。", "比喻": "小乘是自渡的船，大乘是渡人的船。", "现代": "能力越强越要问『为谁用』：把专业从『只为自己』扩到『解决他人真实问题』。"}, {"t": "发菩提心二法：七重因果与自他交换", "plain": "发起菩提心有两条传承：阿底峡的七重因果（知母→念恩→报恩→慈→悲→增上意乐→菩提心），与寂天的自他交换（施受法）。", "meta": "二者皆以『利他』为核心，次第不可乱。", "比喻": "像练肌肉，从轻到重、一组组来，不能跳。", "现代": "关心人从『记得对方的好、想回报』开始，再把这份心从亲友扩到更多人。"}, {"t": "菩提心之量：任运、平等、无拣择", "plain": "菩提心圆满，是对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "meta": "无对象差别、无勉强计较，方名任运。", "比喻": "像呼吸一样自然，不须提醒自己做。", "现代": "衡量一件事是否真做成：看你是否『不假思索、对谁都做』，还是只在方便时才做。"}, {"t": "转恶缘为道用：坏事变修行教材", "plain": "于逆缘恶缘中仍发菩提心——被人亏欠，思惟是旧恶缘成熟，借此修忍、修还债、圆满六度。", "meta": "无恶缘则不能促发、圆满菩提心。", "比喻": "像把废料当燃料，照样能烧出热水。", "现代": "被坑、被误会、遇烂事，不急着怨，先想『这正好练我的耐性/边界/放下』。"}, {"t": "空正见：证无我，我执方消", "plain": "胜义菩提心是证无我空性——了知诸法非实有，『我』与『法』的执着才放得下。", "meta": "有我便难发心；证空性方能彻底无我。", "比喻": "像看清电影是光影，就不会再为剧情里的得失揪心。", "现代": "很多焦虑来自把暂时的评价、得失当成『我』的全部；练习『这不是真正的我』，执取就松。"}];
+const SCENARIOS = [{"t": "职场拖延、伪忙碌", "situ": "每天被琐事填满，真正重要的事一拖再拖，安慰自己『以后有空再做』。", "ana": "本质是没把『有限性』放在心上——以为时间无限。", "app": "用『念死无常』的截止思维：设想某天必须停下，今天该把时间给什么。", "ins": "把最重要的事排到最前，而不是永远排在『有空再』。", "现代": "用『硬截止日』对抗拖延：每天先完成那件『如果不做会遗憾』的事，再处理琐事。"}, {"t": "人际冲突、越想越气", "situ": "和同事/家人起冲突，整晚翻来覆去想对方的不好，睡不好。", "ana": "是『只爱自己』的习气在转——凡事以我为圆心。", "app": "做自他交换（施受法）：吸进对方的苦、呼出善意，把对立转成理解。", "ins": "换位思考不是认输，而是最快解开怨结的办法。", "现代": "冲突时立刻做一遍施受法，怨气往往当场松化，关系也留了余地。"}, {"t": "消费冲动与外貌焦虑", "situ": "被广告、滤镜牵着走，买不需要的东西、为外貌焦虑。", "ana": "是贪爱习气对外相的执取。", "app": "修不净观式的『拆穿』：还原商品与形象的本成分，看穿包装后的平常。", "ins": "执取淡了，自由就多了。", "现代": "下单前问『我买的是需要，还是被制造出的渴望？』；外貌焦虑时想『这是滤镜，不是真实』。"}, {"t": "遇烂人烂事、想报复", "situ": "被人坑了钱、当众误会，第一反应是报复或崩溃。", "ana": "是把顺逆缘都当实有、当偶然，因而起大烦恼。", "app": "转恶缘为道用：思惟是旧恶缘成熟，正好修忍、修放下、圆满六度。", "ins": "同样受苦，可以白受，也可以变成修行的教材。", "现代": "遇到烂事先不急着怨，问『这能练我哪一课？』把烂事变成进阶的台阶。"}, {"t": "学习动机不清、过耳即忘", "situ": "听课、看书很多，但记不住、用不上，像水过鸭背。", "ana": "是闻法心态不对——为凑热闹而非为解决问题。", "app": "依听闻轨理：带着『如病求药』的渴求去学，吸收才扎实。", "ins": "动机干净，所得才深。", "现代": "学任何东西前先写一句『我为什么要学、要解决什么』，带着问题学，记忆与转化都更好。"}, {"t": "想速成、走捷径", "situ": "想一步登天，不愿意打基础，看到别人快就焦虑。", "ana": "是不信『次第』——以为可以跳过阶段。", "app": "依道次引导：下士→中士→上士，前前为后后之基，不可躐等。", "ins": "地基稳，楼才高。", "现代": "把大目标拆成阶梯，老老实实打底；跳过基础的能力，风一吹就倒。"}, {"t": "只为自己、關系疏离", "situ": "努力似乎都为了自己升职面子，和他人越来越疏离，内心也空。", "ana": "是『我执』重，利他心薄。", "app": "修七重因果发心：从念恩、报恩扩到慈心、悲心，终致菩提心。", "ins": "心打开向他人，自己反而更踏实。", "现代": "每周做一件『纯为别人好、不为自己露脸』的事，久了格局与缘分都不同。"}, {"t": "自我形象焦虑", "situ": "很在意别人评价，一条差评能难过很久。", "ana": "是把暂时的评价执为『我』的真实。", "app": "修胜义菩提心：了知诸法非实有，评价只是心识投影。", "ins": "认出『非实有』，执着就松。", "现代": "被差评刺到时，默念『这不是真正的我』，情绪回落，不再反复反刍。"}, {"t": "好习惯总三分钟热度", "situ": "想读书、运动、冥想，总是起头猛、坚持难。", "ana": "是只靠一时冲劲，缺日常护持的系统。", "app": "以五力修习：目标、日日练、做善事、对治退心、回向坚持。", "ins": "靠系统，不靠意志。", "现代": "把『靠意志』换成『靠节奏』：固定时间、公开承诺、每日微量，让好习惯自动发生。"}, {"t": "人生方向迷茫", "situ": "不知道自己到底要什么，随波逐流，常常空虚。", "ana": "是缺一张『总路线图』，不知起点与终点。", "app": "依道次引导：先立总图（三士道），再定自己这一生的阶段目标。", "ins": "有图，才不会原地打转。", "现代": "用一张纸写下『我想成为谁、分几步、每步做什么』，迷茫时看一眼就稳了。"}];
+const EXAM = [{"type": "single", "cat": "道前基础", "dh": "释题·题解", "q": "「释题·题解」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "发心实修", "中士道", "道前基础"], "ans": 3, "exp": "「释题·题解」属于「道前基础」板块。「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。"}, {"type": "single", "cat": "道前基础", "dh": "释题·题解", "q": "下列关于「释题·题解」的描述，正确的一项是？", "opts": ["中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"], "ans": 2, "exp": "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。"}, {"type": "single", "cat": "道前基础", "dh": "释题·题解", "q": "下列法中，与「释题·题解」同属「道前基础」板块的是？", "opts": ["深信业果", "听闻轨理", "菩提心修成之量", "思惟集谛"], "ans": 1, "exp": "「听闻轨理」与「释题·题解」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "造者殊胜", "q": "「造者殊胜」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "上士道", "发心实修", "道前基础"], "ans": 3, "exp": "「造者殊胜」属于「道前基础」板块。本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。"}, {"type": "single", "cat": "道前基础", "dh": "造者殊胜", "q": "下列关于「造者殊胜」的描述，正确的一项是？", "opts": ["本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。", "依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"], "ans": 0, "exp": "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。"}, {"type": "single", "cat": "道前基础", "dh": "造者殊胜", "q": "下列法中，与「造者殊胜」同属「道前基础」板块的是？", "opts": ["七重因果发心", "五力修习", "暇满人身", "自他交换"], "ans": 2, "exp": "「暇满人身」与「造者殊胜」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "教授殊胜", "q": "「教授殊胜」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "道前基础", "下士道", "上士道"], "ans": 1, "exp": "「教授殊胜」属于「道前基础」板块。本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。"}, {"type": "single", "cat": "道前基础", "dh": "教授殊胜", "q": "下列关于「教授殊胜」的描述，正确的一项是？", "opts": ["三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。", "本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。", "以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。", "集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。"], "ans": 1, "exp": "本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。"}, {"type": "single", "cat": "道前基础", "dh": "教授殊胜", "q": "下列法中，与「教授殊胜」同属「道前基础」板块的是？", "opts": ["造者殊胜", "不净观", "菩提心发起之量", "入大乘门发心"], "ans": 0, "exp": "「造者殊胜」与「教授殊胜」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "听闻轨理", "q": "「听闻轨理」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "发心实修", "中士道", "道前基础"], "ans": 3, "exp": "「听闻轨理」属于「道前基础」板块。闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。"}, {"type": "single", "cat": "道前基础", "dh": "听闻轨理", "q": "下列关于「听闻轨理」的描述，正确的一项是？", "opts": ["本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。", "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。", "集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。"], "ans": 3, "exp": "闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。"}, {"type": "single", "cat": "道前基础", "dh": "听闻轨理", "q": "下列法中，与「听闻轨理」同属「道前基础」板块的是？", "opts": ["释题·题解", "思惟苦谛", "不净观", "深信业果"], "ans": 0, "exp": "「释题·题解」与「听闻轨理」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "说法轨理", "q": "「说法轨理」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "发心实修", "道前基础", "上士道"], "ans": 2, "exp": "「说法轨理」属于「道前基础」板块。说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。"}, {"type": "single", "cat": "道前基础", "dh": "说法轨理", "q": "下列关于「说法轨理」的描述，正确的一项是？", "opts": ["常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。", "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。"], "ans": 2, "exp": "说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。"}, {"type": "single", "cat": "道前基础", "dh": "说法轨理", "q": "下列法中，与「说法轨理」同属「道前基础」板块的是？", "opts": ["皈依三宝", "入大乘门发心", "菩提心发起之量", "暇满人身"], "ans": 3, "exp": "「暇满人身」与「说法轨理」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "亲近善知识", "q": "「亲近善知识」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "道前基础", "上士道", "下士道"], "ans": 1, "exp": "「亲近善知识」属于「道前基础」板块。正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。"}, {"type": "single", "cat": "道前基础", "dh": "亲近善知识", "q": "下列关于「亲近善知识」的描述，正确的一项是？", "opts": ["正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。", "说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。"], "ans": 0, "exp": "正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。"}, {"type": "single", "cat": "道前基础", "dh": "亲近善知识", "q": "下列法中，与「亲近善知识」同属「道前基础」板块的是？", "opts": ["深信业果", "道次引导", "念死无常", "出离心"], "ans": 1, "exp": "「道次引导」与「亲近善知识」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "修习轨理·六加行", "q": "「修习轨理·六加行」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "上士道", "发心实修", "道前基础"], "ans": 3, "exp": "「修习轨理·六加行」属于「道前基础」板块。修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。"}, {"type": "single", "cat": "道前基础", "dh": "修习轨理·六加行", "q": "下列关于「修习轨理·六加行」的描述，正确的一项是？", "opts": ["皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"], "ans": 1, "exp": "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。"}, {"type": "single", "cat": "道前基础", "dh": "修习轨理·六加行", "q": "下列法中，与「修习轨理·六加行」同属「道前基础」板块的是？", "opts": ["三恶趣苦", "受菩萨戒·仪轨", "皈依三宝", "说法轨理"], "ans": 3, "exp": "「说法轨理」与「修习轨理·六加行」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "暇满人身", "q": "「暇满人身」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "下士道", "道前基础", "上士道"], "ans": 2, "exp": "「暇满人身」属于「道前基础」板块。『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。"}, {"type": "single", "cat": "道前基础", "dh": "暇满人身", "q": "下列关于「暇满人身」的描述，正确的一项是？", "opts": ["『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。", "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。"], "ans": 0, "exp": "『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。"}, {"type": "single", "cat": "道前基础", "dh": "暇满人身", "q": "下列法中，与「暇满人身」同属「道前基础」板块的是？", "opts": ["受菩萨戒·仪轨", "教授殊胜", "世俗·胜义菩提心", "自他交换"], "ans": 1, "exp": "「教授殊胜」与「暇满人身」同属「道前基础」板块。"}, {"type": "single", "cat": "道前基础", "dh": "道次引导", "q": "「道次引导」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "下士道", "中士道", "上士道"], "ans": 0, "exp": "「道次引导」属于「道前基础」板块。本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。"}, {"type": "single", "cat": "道前基础", "dh": "道次引导", "q": "下列关于「道次引导」的描述，正确的一项是？", "opts": ["中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。", "因果四特质：业决定、增长、未造不遇、已造不失。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。"], "ans": 2, "exp": "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。"}, {"type": "single", "cat": "道前基础", "dh": "道次引导", "q": "下列法中，与「道次引导」同属「道前基础」板块的是？", "opts": ["释题·题解", "思惟集谛", "入大乘门发心", "五力修习"], "ans": 0, "exp": "「释题·题解」与「道次引导」同属「道前基础」板块。"}, {"type": "single", "cat": "下士道", "dh": "念死无常", "q": "「念死无常」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "下士道", "中士道", "道前基础"], "ans": 1, "exp": "「念死无常」属于「下士道」板块。常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。"}, {"type": "single", "cat": "下士道", "dh": "念死无常", "q": "下列关于「念死无常」的描述，正确的一项是？", "opts": ["常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "闻法者须具足条件：为求解脱、如病求药般殷重闻法，方能得佛法实益。"], "ans": 0, "exp": "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。"}, {"type": "single", "cat": "下士道", "dh": "念死无常", "q": "下列法中，与「念死无常」同属「下士道」板块的是？", "opts": ["皈依三宝", "暇满人身", "七重因果发心", "受菩萨戒·仪轨"], "ans": 0, "exp": "「皈依三宝」与「念死无常」同属「下士道」板块。"}, {"type": "single", "cat": "下士道", "dh": "三恶趣苦", "q": "「三恶趣苦」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "发心实修", "下士道", "道前基础"], "ans": 2, "exp": "「三恶趣苦」属于「下士道」板块。地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。"}, {"type": "single", "cat": "下士道", "dh": "三恶趣苦", "q": "下列关于「三恶趣苦」的描述，正确的一项是？", "opts": ["地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。", "次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。"], "ans": 0, "exp": "地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。"}, {"type": "single", "cat": "下士道", "dh": "三恶趣苦", "q": "下列法中，与「三恶趣苦」同属「下士道」板块的是？", "opts": ["深信业果", "道次引导", "不净观", "入大乘门发心"], "ans": 0, "exp": "「深信业果」与「三恶趣苦」同属「下士道」板块。"}, {"type": "single", "cat": "下士道", "dh": "皈依三宝", "q": "「皈依三宝」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["上士道", "中士道", "下士道", "发心实修"], "ans": 2, "exp": "「皈依三宝」属于「下士道」板块。皈依佛、法、僧，是脱离恶趣最稳当的依怙。"}, {"type": "single", "cat": "下士道", "dh": "皈依三宝", "q": "下列关于「皈依三宝」的描述，正确的一项是？", "opts": ["皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。"], "ans": 0, "exp": "皈依佛、法、僧，是脱离恶趣最稳当的依怙。"}, {"type": "single", "cat": "下士道", "dh": "皈依三宝", "q": "下列法中，与「皈依三宝」同属「下士道」板块的是？", "opts": ["教授殊胜", "深信业果", "五力修习", "自他交换"], "ans": 1, "exp": "「深信业果」与「皈依三宝」同属「下士道」板块。"}, {"type": "single", "cat": "下士道", "dh": "深信业果", "q": "「深信业果」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "发心实修", "中士道", "下士道"], "ans": 3, "exp": "「深信业果」属于「下士道」板块。因果四特质：业决定、增长、未造不遇、已造不失。"}, {"type": "single", "cat": "下士道", "dh": "深信业果", "q": "下列关于「深信业果」的描述，正确的一项是？", "opts": ["依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。", "『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "因果四特质：业决定、增长、未造不遇、已造不失。"], "ans": 3, "exp": "因果四特质：业决定、增长、未造不遇、已造不失。"}, {"type": "single", "cat": "下士道", "dh": "深信业果", "q": "下列法中，与「深信业果」同属「下士道」板块的是？", "opts": ["亲近善知识", "戒定慧三学", "受菩萨戒·仪轨", "皈依三宝"], "ans": 3, "exp": "「皈依三宝」与「深信业果」同属「下士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "思惟苦谛", "q": "「思惟苦谛」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "上士道", "发心实修", "中士道"], "ans": 3, "exp": "「思惟苦谛」属于「中士道」板块。三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。"}, {"type": "single", "cat": "中士道", "dh": "思惟苦谛", "q": "下列关于「思惟苦谛」的描述，正确的一项是？", "opts": ["阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。", "三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。", "本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。", "集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。"], "ans": 1, "exp": "三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。"}, {"type": "single", "cat": "中士道", "dh": "思惟苦谛", "q": "下列法中，与「思惟苦谛」同属「中士道」板块的是？", "opts": ["菩提心发起之量", "受菩萨戒·仪轨", "不净观", "三恶趣苦"], "ans": 2, "exp": "「不净观」与「思惟苦谛」同属「中士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "思惟集谛", "q": "「思惟集谛」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "发心实修", "下士道", "道前基础"], "ans": 0, "exp": "「思惟集谛」属于「中士道」板块。集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。"}, {"type": "single", "cat": "中士道", "dh": "思惟集谛", "q": "下列关于「思惟集谛」的描述，正确的一项是？", "opts": ["集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。", "因果四特质：业决定、增长、未造不遇、已造不失。"], "ans": 0, "exp": "集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。"}, {"type": "single", "cat": "中士道", "dh": "思惟集谛", "q": "下列法中，与「思惟集谛」同属「中士道」板块的是？", "opts": ["菩提心发起之量", "释题·题解", "听闻轨理", "戒定慧三学"], "ans": 3, "exp": "「戒定慧三学」与「思惟集谛」同属「中士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "十二缘起", "q": "「十二缘起」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "中士道", "上士道", "道前基础"], "ans": 1, "exp": "「十二缘起」属于「中士道」板块。无明缘行…乃至老死，十二支环环相扣，锁人于生死。"}, {"type": "single", "cat": "中士道", "dh": "十二缘起", "q": "下列关于「十二缘起」的描述，正确的一项是？", "opts": ["『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。", "中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。"], "ans": 2, "exp": "无明缘行…乃至老死，十二支环环相扣，锁人于生死。"}, {"type": "single", "cat": "中士道", "dh": "十二缘起", "q": "下列法中，与「十二缘起」同属「中士道」板块的是？", "opts": ["思惟集谛", "世俗·胜义菩提心", "受菩萨戒·仪轨", "暇满人身"], "ans": 0, "exp": "「思惟集谛」与「十二缘起」同属「中士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "出离心", "q": "「出离心」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "发心实修", "道前基础", "上士道"], "ans": 0, "exp": "「出离心」属于「中士道」板块。中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。"}, {"type": "single", "cat": "中士道", "dh": "出离心", "q": "下列关于「出离心」的描述，正确的一项是？", "opts": ["中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。", "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。"], "ans": 0, "exp": "中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。"}, {"type": "single", "cat": "中士道", "dh": "出离心", "q": "下列法中，与「出离心」同属「中士道」板块的是？", "opts": ["修习轨理·六加行", "说法轨理", "五力修习", "思惟集谛"], "ans": 3, "exp": "「思惟集谛」与「出离心」同属「中士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "戒定慧三学", "q": "「戒定慧三学」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "道前基础", "中士道", "发心实修"], "ans": 2, "exp": "「戒定慧三学」属于「中士道」板块。次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。"}, {"type": "single", "cat": "中士道", "dh": "戒定慧三学", "q": "下列关于「戒定慧三学」的描述，正确的一项是？", "opts": ["世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。", "次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。"], "ans": 1, "exp": "次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。"}, {"type": "single", "cat": "中士道", "dh": "戒定慧三学", "q": "下列法中，与「戒定慧三学」同属「中士道」板块的是？", "opts": ["深信业果", "世俗·胜义菩提心", "不净观", "五力修习"], "ans": 2, "exp": "「不净观」与「戒定慧三学」同属「中士道」板块。"}, {"type": "single", "cat": "中士道", "dh": "不净观", "q": "「不净观」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "道前基础", "中士道", "上士道"], "ans": 2, "exp": "「不净观」属于「中士道」板块。贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。"}, {"type": "single", "cat": "中士道", "dh": "不净观", "q": "下列关于「不净观」的描述，正确的一项是？", "opts": ["贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。", "菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "检定：心心念念在众生而非自己；上求佛道只为下化众生，非为自成就。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。"], "ans": 0, "exp": "贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。"}, {"type": "single", "cat": "中士道", "dh": "不净观", "q": "下列法中，与「不净观」同属「中士道」板块的是？", "opts": ["思惟苦谛", "入大乘门发心", "教授殊胜", "听闻轨理"], "ans": 0, "exp": "「思惟苦谛」与「不净观」同属「中士道」板块。"}, {"type": "single", "cat": "上士道", "dh": "入大乘门发心", "q": "「入大乘门发心」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "上士道", "道前基础", "下士道"], "ans": 1, "exp": "「入大乘门发心」属于「上士道」板块。中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。"}, {"type": "single", "cat": "上士道", "dh": "入大乘门发心", "q": "下列关于「入大乘门发心」的描述，正确的一项是？", "opts": ["集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。", "世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。", "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。"], "ans": 3, "exp": "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。"}, {"type": "single", "cat": "上士道", "dh": "入大乘门发心", "q": "下列法中，与「入大乘门发心」同属「上士道」板块的是？", "opts": ["七重因果发心", "思惟集谛", "皈依三宝", "修习轨理·六加行"], "ans": 0, "exp": "「七重因果发心」与「入大乘门发心」同属「上士道」板块。"}, {"type": "single", "cat": "上士道", "dh": "七重因果发心", "q": "「七重因果发心」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "上士道", "发心实修", "中士道"], "ans": 1, "exp": "「七重因果发心」属于「上士道」板块。阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。"}, {"type": "single", "cat": "上士道", "dh": "七重因果发心", "q": "下列关于「七重因果发心」的描述，正确的一项是？", "opts": ["贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。", "三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。", "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。", "中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。"], "ans": 2, "exp": "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。"}, {"type": "single", "cat": "上士道", "dh": "七重因果发心", "q": "下列法中，与「七重因果发心」同属「上士道」板块的是？", "opts": ["思惟集谛", "暇满人身", "入大乘门发心", "皈依三宝"], "ans": 2, "exp": "「入大乘门发心」与「七重因果发心」同属「上士道」板块。"}, {"type": "single", "cat": "上士道", "dh": "自他交换", "q": "「自他交换」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["下士道", "道前基础", "上士道", "中士道"], "ans": 2, "exp": "「自他交换」属于「上士道」板块。寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。"}, {"type": "single", "cat": "上士道", "dh": "自他交换", "q": "下列关于「自他交换」的描述，正确的一项是？", "opts": ["说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。"], "ans": 1, "exp": "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。"}, {"type": "single", "cat": "上士道", "dh": "自他交换", "q": "下列法中，与「自他交换」同属「上士道」板块的是？", "opts": ["思惟集谛", "造者殊胜", "五力修习", "入大乘门发心"], "ans": 3, "exp": "「入大乘门发心」与「自他交换」同属「上士道」板块。"}, {"type": "single", "cat": "上士道", "dh": "菩提心发起之量", "q": "「菩提心发起之量」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "下士道", "中士道", "上士道"], "ans": 3, "exp": "「菩提心发起之量」属于「上士道」板块。菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。"}, {"type": "single", "cat": "上士道", "dh": "菩提心发起之量", "q": "下列关于「菩提心发起之量」的描述，正确的一项是？", "opts": ["皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "三界轮回唯苦（八苦、三苦），得人天果报仍不究竟，终还堕落。", "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。"], "ans": 1, "exp": "菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。"}, {"type": "single", "cat": "上士道", "dh": "菩提心发起之量", "q": "下列法中，与「菩提心发起之量」同属「上士道」板块的是？", "opts": ["菩提心修成之量", "亲近善知识", "受菩萨戒·仪轨", "教授殊胜"], "ans": 2, "exp": "「受菩萨戒·仪轨」与「菩提心发起之量」同属「上士道」板块。"}, {"type": "single", "cat": "上士道", "dh": "受菩萨戒·仪轨", "q": "「受菩萨戒·仪轨」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "发心实修", "上士道", "下士道"], "ans": 2, "exp": "「受菩萨戒·仪轨」属于「上士道」板块。依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"}, {"type": "single", "cat": "上士道", "dh": "受菩萨戒·仪轨", "q": "下列关于「受菩萨戒·仪轨」的描述，正确的一项是？", "opts": ["以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。", "正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。", "依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。", "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。"], "ans": 2, "exp": "依仪轨受菩萨戒，将菩提心转为戒体，有学处可循、有护持可依。"}, {"type": "single", "cat": "上士道", "dh": "受菩萨戒·仪轨", "q": "下列法中，与「受菩萨戒·仪轨」同属「上士道」板块的是？", "opts": ["亲近善知识", "入大乘门发心", "三恶趣苦", "修习轨理·六加行"], "ans": 1, "exp": "「入大乘门发心」与「受菩萨戒·仪轨」同属「上士道」板块。"}, {"type": "single", "cat": "发心实修", "dh": "世俗·胜义菩提心", "q": "「世俗·胜义菩提心」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "下士道", "发心实修", "上士道"], "ans": 2, "exp": "「世俗·胜义菩提心」属于「发心实修」板块。世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。"}, {"type": "single", "cat": "发心实修", "dh": "世俗·胜义菩提心", "q": "下列关于「世俗·胜义菩提心」的描述，正确的一项是？", "opts": ["「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。", "菩提心圆满之量：对一切有情任运自然、平等无别地生起，第一念即发、毫无迟疑与拣择。", "地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。"], "ans": 1, "exp": "世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。"}, {"type": "single", "cat": "发心实修", "dh": "世俗·胜义菩提心", "q": "下列法中，与「世俗·胜义菩提心」同属「发心实修」板块的是？", "opts": ["出离心", "修习轨理·六加行", "三恶趣苦", "转恶缘为菩提道"], "ans": 3, "exp": "「转恶缘为菩提道」与「世俗·胜义菩提心」同属「发心实修」板块。"}, {"type": "single", "cat": "发心实修", "dh": "转恶缘为菩提道", "q": "「转恶缘为菩提道」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["道前基础", "发心实修", "上士道", "中士道"], "ans": 1, "exp": "「转恶缘为菩提道」属于「发心实修」板块。于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。"}, {"type": "single", "cat": "发心实修", "dh": "转恶缘为菩提道", "q": "下列关于「转恶缘为菩提道」的描述，正确的一项是？", "opts": ["本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。", "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。", "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。"], "ans": 3, "exp": "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。"}, {"type": "single", "cat": "发心实修", "dh": "转恶缘为菩提道", "q": "下列法中，与「转恶缘为菩提道」同属「发心实修」板块的是？", "opts": ["菩提心发起之量", "三恶趣苦", "世俗·胜义菩提心", "七重因果发心"], "ans": 2, "exp": "「世俗·胜义菩提心」与「转恶缘为菩提道」同属「发心实修」板块。"}, {"type": "single", "cat": "发心实修", "dh": "五力修习", "q": "「五力修习」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["发心实修", "下士道", "道前基础", "中士道"], "ans": 0, "exp": "「五力修习」属于「发心实修」板块。以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。"}, {"type": "single", "cat": "发心实修", "dh": "五力修习", "q": "下列关于「五力修习」的描述，正确的一项是？", "opts": ["寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "因果四特质：业决定、增长、未造不遇、已造不失。", "以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。"], "ans": 2, "exp": "以五力（牵引力、修习力、白法力、破斥力、愿力）熏修菩提心善根种子，令其增长、生生不息。"}, {"type": "single", "cat": "发心实修", "dh": "五力修习", "q": "下列法中，与「五力修习」同属「发心实修」板块的是？", "opts": ["受菩萨戒·仪轨", "戒定慧三学", "菩提心修成之量", "思惟苦谛"], "ans": 2, "exp": "「菩提心修成之量」与「五力修习」同属「发心实修」板块。"}, {"type": "single", "cat": "发心实修", "dh": "菩提心修成之量", "q": "「菩提心修成之量」在《菩提道次第广论略讲》互动学习 app中归属于哪个板块（门类）？", "opts": ["中士道", "上士道", "下士道", "发心实修"], "ans": 3, "exp": "「菩提心修成之量」属于「发心实修」板块。检定：心心念念在众生而非自己；上求佛道只为下化众生，非为自成就。"}, {"type": "single", "cat": "发心实修", "dh": "菩提心修成之量", "q": "下列关于「菩提心修成之量」的描述，正确的一项是？", "opts": ["地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。", "检定：心心念念在众生而非自己；上求佛道只为下化众生，非为自成就。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。"], "ans": 1, "exp": "检定：心心念念在众生而非自己；上求佛道只为下化众生，非为自成就。"}, {"type": "single", "cat": "发心实修", "dh": "菩提心修成之量", "q": "下列法中，与「菩提心修成之量」同属「发心实修」板块的是？", "opts": ["思惟苦谛", "十二缘起", "修习轨理·六加行", "世俗·胜义菩提心"], "ans": 3, "exp": "「世俗·胜义菩提心」与「菩提心修成之量」同属「发心实修」板块。"}, {"type": "multi", "cat": "道前基础", "dh": "释题·题解", "q": "下列关于「释题·题解」的表述，正确的有（多选）？", "opts": ["适合一切根器：求世间福报者、求解脱者、发菩提心者，皆可依此次第得大利益。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。", "「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。"], "ans": [0, 3], "exp": "正确项：「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。；适合一切根器：求世间福报者、求解脱者、发菩提心者，皆可依此次第得大利益。"}, {"type": "single", "cat": "道前基础", "dh": "释题·题解", "q": "关于「释题·题解」的关联与定位，下列说法正确的是？", "opts": ["下士道初门，怖畏恶趣之因。", "全论总纲，标示『由凡夫一步步行至成佛』的明确路线。", "解脱道的修学次第。", "中士道之心要——真想解脱。"], "ans": 1, "exp": "全论总纲，标示『由凡夫一步步行至成佛』的明确路线。"}, {"type": "multi", "cat": "道前基础", "dh": "亲近善知识", "q": "下列关于「亲近善知识」的表述，正确的有（多选）？", "opts": ["次第：依戒安住善法→心得安乐易定→定能发慧（见空性）。", "依师需善根福德因缘，亦须弟子具足德相。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。"], "ans": [1, 3], "exp": "正确项：正式修行须先依止具德善知识，否则易盲修瞎练、原地打转。；依师需善根福德因缘，亦须弟子具足德相。"}, {"type": "single", "cat": "道前基础", "dh": "亲近善知识", "q": "关于「亲近善知识」的关联与定位，下列说法正确的是？", "opts": ["闻说二者心行清净，法乃殊胜。", "上士道之门——由自利转向利他。", "入道根本——无师则不知修处的第一步。", "苦之因——烦恼与业。"], "ans": 2, "exp": "入道根本——无师则不知修处的第一步。"}, {"type": "multi", "cat": "道前基础", "dh": "暇满人身", "q": "下列关于「暇满人身」的表述，正确的有（多选）？", "opts": ["集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "得此人身极难，义大难得，当善加利用。", "中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。", "『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。"], "ans": [1, 3], "exp": "正确项：『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。；得此人身极难，义大难得，当善加利用。"}, {"type": "single", "cat": "道前基础", "dh": "暇满人身", "q": "关于「暇满人身」的关联与定位，下列说法正确的是？", "opts": ["上士道之门——由自利转向利他。", "修行的前提条件——人身难得，勿空过。", "全论总纲，标示『由凡夫一步步行至成佛』的明确路线。", "下士道枢纽——以三宝为究竟依怙。"], "ans": 1, "exp": "修行的前提条件——人身难得，勿空过。"}, {"type": "multi", "cat": "下士道", "dh": "念死无常", "q": "下列关于「念死无常」的表述，正确的有（多选）？", "opts": ["未修念死之过：恒执常乐，虚耗暇满。", "常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "皈依佛、法、僧，是脱离恶趣最稳当的依怙。"], "ans": [0, 1], "exp": "正确项：常念『我必死、死期不定、死时除佛法外皆带不走』，才能殷重修行、净恶积善。；未修念死之过：恒执常乐，虚耗暇满。"}, {"type": "single", "cat": "下士道", "dh": "念死无常", "q": "关于「念死无常」的关联与定位，下列说法正确的是？", "opts": ["下士道枢纽——以三宝为究竟依怙。", "下士道初门，怖畏恶趣之因。", "解脱道的修学次第。", "日常护持发心之五力。"], "ans": 1, "exp": "下士道初门，怖畏恶趣之因。"}, {"type": "multi", "cat": "下士道", "dh": "皈依三宝", "q": "下列关于「皈依三宝」的表述，正确的有（多选）？", "opts": ["皈依佛、法、僧，是脱离恶趣最稳当的依怙。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "世俗菩提心是愿行利他；胜义菩提心是证无我空性——『三界唯心，万法唯识』，了知诸法非实有，我执方消。", "由念死、畏恶趣，自然生起皈投三宝之心。"], "ans": [0, 3], "exp": "正确项：皈依佛、法、僧，是脱离恶趣最稳当的依怙。；由念死、畏恶趣，自然生起皈投三宝之心。"}, {"type": "single", "cat": "下士道", "dh": "皈依三宝", "q": "关于「皈依三宝」的关联与定位，下列说法正确的是？", "opts": ["入道根本——无师则不知修处的第一步。", "以缘起理显轮回如何形成、如何断除。", "全论总纲，标示『由凡夫一步步行至成佛』的明确路线。", "下士道枢纽——以三宝为究竟依怙。"], "ans": 3, "exp": "下士道枢纽——以三宝为究竟依怙。"}, {"type": "multi", "cat": "下士道", "dh": "深信业果", "q": "下列关于「深信业果」的表述，正确的有（多选）？", "opts": ["「菩提」是觉悟、成佛；「道次第」是趣向成佛的先后次第；「广」是详尽开演。本论即成佛之道的完整说明书。", "因果四特质：业决定、增长、未造不遇、已造不失。", "信因果是修行最基础观念：行善得善、造恶感苦，丝毫不爽。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。"], "ans": [1, 2], "exp": "正确项：因果四特质：业决定、增长、未造不遇、已造不失。；信因果是修行最基础观念：行善得善、造恶感苦，丝毫不爽。"}, {"type": "single", "cat": "下士道", "dh": "深信业果", "q": "关于「深信业果」的关联与定位，下列说法正确的是？", "opts": ["以『是否为众生』检心。", "闻说二者心行清净，法乃殊胜。", "上士道之门——由自利转向利他。", "下士道核心——一切修行建立在因果上。"], "ans": 3, "exp": "下士道核心——一切修行建立在因果上。"}, {"type": "multi", "cat": "中士道", "dh": "十二缘起", "q": "下列关于「十二缘起」的表述，正确的有（多选）？", "opts": ["贪重则当修不净观对治：对自身修三十二身分、五种不净；于他修不净以息贪爱。", "无明缘行…乃至老死，十二支环环相扣，锁人于生死。", "无明执实我实法，是轮回根本；顺观知来源，逆观知还灭。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。"], "ans": [1, 2], "exp": "正确项：无明缘行…乃至老死，十二支环环相扣，锁人于生死。；无明执实我实法，是轮回根本；顺观知来源，逆观知还灭。"}, {"type": "single", "cat": "中士道", "dh": "十二缘起", "q": "关于「十二缘起」的关联与定位，下列说法正确的是？", "opts": ["菩提心之二重体性。", "以戒恒守护持菩提心。", "闻法心态——以求解脱心领纳正法。", "以缘起理显轮回如何形成、如何断除。"], "ans": 3, "exp": "以缘起理显轮回如何形成、如何断除。"}, {"type": "multi", "cat": "中士道", "dh": "出离心", "q": "下列关于「出离心」的表述，正确的有（多选）？", "opts": ["地狱、饿鬼、畜生三恶道苦不堪言，皆由恶业所感。", "本论以三士道（下士、中士、上士）次第引导，从初修直至成佛，含摄一切佛法精要。", "出离心须迫切——如处火宅，不容拖延。", "中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。"], "ans": [2, 3], "exp": "正确项：中士道以出离三界为标的；生起出离心有三法：思苦、思集、思缘起。；出离心须迫切——如处火宅，不容拖延。"}, {"type": "single", "cat": "中士道", "dh": "出离心", "q": "关于「出离心」的关联与定位，下列说法正确的是？", "opts": ["显密大小乘，皆归于此一圆满道体。", "下士道核心——一切修行建立在因果上。", "中士道之心要——真想解脱。", "以违缘为道用。"], "ans": 2, "exp": "中士道之心要——真想解脱。"}, {"type": "multi", "cat": "上士道", "dh": "入大乘门发心", "q": "下列关于「入大乘门发心」的表述，正确的有（多选）？", "opts": ["中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。", "佛说解脱道，正是为令众生顺利入大乘、真实利他。", "集谛即烦恼：十根本烦恼（贪瞋痴慢疑恶见等）是造业、轮回之因。", "修习分加行、正行、结行。加行有六：备处所、设三宝像、身具威仪、观想、积资粮、发愿。"], "ans": [0, 1], "exp": "正确项：中士道解脱是上士道的基础；修完解脱道，须回小向大，发菩提心、行六度方成佛。；佛说解脱道，正是为令众生顺利入大乘、真实利他。"}, {"type": "single", "cat": "上士道", "dh": "入大乘门发心", "q": "关于「入大乘门发心」的关联与定位，下列说法正确的是？", "opts": ["上士道之门——由自利转向利他。", "以戒恒守护持菩提心。", "中士道初门——认出轮回本质皆苦。", "以『是否为众生』检心。"], "ans": 0, "exp": "上士道之门——由自利转向利他。"}, {"type": "multi", "cat": "上士道", "dh": "七重因果发心", "q": "下列关于「七重因果发心」的表述，正确的有（多选）？", "opts": ["寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。", "视一切众生如往世慈母，方能真实生起利他之心。", "『暇』是八种闲暇，『满』是十种圆满，具足方堪修行；三恶道、天道皆难修行。"], "ans": [1, 2], "exp": "正确项：阿底峡尊者所传：知母、念恩、报恩、慈心、悲心、增上意乐、菩提心（六因一果），次第不可乱。；视一切众生如往世慈母，方能真实生起利他之心。"}, {"type": "single", "cat": "上士道", "dh": "七重因果发心", "q": "关于「七重因果发心」的关联与定位，下列说法正确的是？", "opts": ["菩提心之二重体性。", "全论骨架——三士道一贯之道。", "中士道之心要——真想解脱。", "发菩提心方法之一（因果次第）。"], "ans": 3, "exp": "发菩提心方法之一（因果次第）。"}, {"type": "multi", "cat": "上士道", "dh": "自他交换", "q": "下列关于「自他交换」的表述，正确的有（多选）？", "opts": ["是最速同时圆满自利利他之法；只为己则生贪瞋痴、造恶业。", "说法者须以慈悲、清净心说法，不为名闻利养，方有二十种殊胜功德（如成就正念、胜慧、觉慧）。", "寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。", "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。"], "ans": [0, 2], "exp": "正确项：寂天菩萨所传：将爱己之心换为爱他，专念利他（施受法）。；是最速同时圆满自利利他之法；只为己则生贪瞋痴、造恶业。"}, {"type": "single", "cat": "上士道", "dh": "自他交换", "q": "关于「自他交换」的关联与定位，下列说法正确的是？", "opts": ["入道根本——无师则不知修处的第一步。", "说明法脉清净、师承有据，令人信受。", "发菩提心方法之二（施受法）。", "显密大小乘，皆归于此一圆满道体。"], "ans": 2, "exp": "发菩提心方法之二（施受法）。"}, {"type": "multi", "cat": "发心实修", "dh": "转恶缘为菩提道", "q": "下列关于「转恶缘为菩提道」的表述，正确的有（多选）？", "opts": ["无恶缘则不能促发、圆满菩提心。", "本论虽为宗喀巴大师所造，却先礼赞阿底峡尊者——因尊者总持深见、广行二大传承，并著《菩提道炬论》为直接渊源。", "于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。", "本论通达一切圣教不相违背：小乘、大乘、显教、密教皆含摄无碍。"], "ans": [0, 2], "exp": "正确项：于逆缘恶缘中仍发菩提心：如被人亏欠，思惟是过去恶缘成熟，借此修忍、修还债、圆满六度。；无恶缘则不能促发、圆满菩提心。"}, {"type": "single", "cat": "发心实修", "dh": "转恶缘为菩提道", "q": "关于「转恶缘为菩提道」的关联与定位，下列说法正确的是？", "opts": ["说明法脉清净、师承有据，令人信受。", "以违缘为道用。", "闻法心态——以求解脱心领纳正法。", "闻说二者心行清净，法乃殊胜。"], "ans": 1, "exp": "以违缘为道用。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「三士道前后相承」，下列说法正确的有（多选）？", "opts": ["仅有出离心易堕小乘自了；仅有菩提心无空见则悲心执实、难臻究竟；仅有空见无悲心则落断灭。", "无师则盲修，无暇满则无修依，无总图则散乱无归。", "下士道求人天果报，中士道求出离三界，上士道发菩提心行六度，三者前后相承。", "小乘是大乘的基础，显教是密教的基础；无下士、中士之基，上士菩提心与密乘悉地皆难成就。"], "ans": [2, 3], "exp": "正确项：下士道求人天果报，中士道求出离三界，上士道发菩提心行六度，三者前后相承。；小乘是大乘的基础，显教是密教的基础；无下士、中士之基，上士菩提心与密乘悉地皆难成就。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「三主要道缺一不可」，下列说法正确的有（多选）？", "opts": ["仅有出离心易堕小乘自了；仅有菩提心无空见则悲心执实、难臻究竟；仅有空见无悲心则落断灭。", "故道前基础是一切修学之根。", "故本论由浅入深，令学者稳速入道。", "成佛须具三主要道：出离心令不贪著轮回，菩提心令不舍众生，空正见令不执实有。"], "ans": [0, 3], "exp": "正确项：成佛须具三主要道：出离心令不贪著轮回，菩提心令不舍众生，空正见令不执实有。；仅有出离心易堕小乘自了；仅有菩提心无空见则悲心执实、难臻究竟；仅有空见无悲心则落断灭。"}, {"type": "multi", "cat": "关系", "dh": "", "q": "关于「道前基础为入道根本」，下列说法正确的有（多选）？", "opts": ["小乘是大乘的基础，显教是密教的基础；无下士、中士之基，上士菩提心与密乘悉地皆难成就。", "三者和合，方为大乘正道。", "无师则盲修，无暇满则无修依，无总图则散乱无归。", "未入三士道前，先修道前基础：端正闻思心态（听闻、说法轨理）、依止具德善知识、珍重暇满人身、建立三士道总图。"], "ans": [2, 3], "exp": "正确项：未入三士道前，先修道前基础：端正闻思心态（听闻、说法轨理）、依止具德善知识、珍重暇满人身、建立三士道总图。；无师则盲修，无暇满则无修依，无总图则散乱无归。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「三士道修学次第」主要表达的是？", "opts": ["本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。", "宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。", "七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。"], "ans": 0, "exp": "本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「三主要道：出离心·菩提心·空正见」主要表达的是？", "opts": ["宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。", "七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。", "本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。"], "ans": 0, "exp": "宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。"}, {"type": "single", "cat": "关系", "dh": "", "q": "逻辑图「七重因果发心次第」主要表达的是？", "opts": ["七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。", "本论以三士道次第引导：道前基础打底，下士道求出离恶趣、得人天果报，中士道求出离三界，上士道发菩提心行六度。前前为后后之基，环环相扣，一贯至成佛。", "宗喀巴大师抉出『三主要道』：出离心（厌离轮回）、菩提心（利他大愿）、空正见（证无我）。三者缺一不可——无出离心则菩提心无基，无空正见则悲心易执实。"], "ans": 0, "exp": "七重因果（阿底峡尊者传）：由『知母』起步，经念恩、报恩、慈心、悲心、增上意乐，终致菩提心。六因一果，次第不可紊乱，是发起菩提心最稳当之法。"}];
+// ===== 工具 =====
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const ce=tag=>document.createElement(tag);
+
+// 合并 group / rel 到数据
+CATS.forEach(c=>c.dharmas.forEach(d=>{ d.group=GROUP_MAP[d.name]||null; d.rel=REL_NOTES[d.name]||''; }));
+
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z"/></svg>';
+
+// ===== 主题 =====
+const themeToggle=$('#themeToggle');
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t==='dark'?'dark':'light'); themeToggle.innerHTML = t==='dark'?SUN:MOON; }
+let theme = localStorage.getItem('gl-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+applyTheme(theme);
+themeToggle.onclick=()=>{ theme = theme==='dark'?'light':'dark'; localStorage.setItem('gl-theme',theme); applyTheme(theme); };
+
+// ===== 导航 =====
+function goPage(p){
+  $$('.page').forEach(s=>s.classList.remove('active'));
+  const sec=$('#'+p); if(sec) sec.classList.add('active');
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===p));
+  window.scrollTo(0,0);
+}
+$$('.nav-btn').forEach(b=> b.onclick=()=>goPage(b.dataset.page));
+
+function makeDharmaAcc(d){
+  const acc=ce('div'); acc.className='acc'; acc.dataset.name=d.name;
+  const grpTag = d.group? '<span class="grp-tag">'+d.group+'</span>':'';
+  const impTag = d.imp? '<span class="imp-tag">重点</span>':'';
+  const head=ce('div'); head.className='acc-head';
+  head.innerHTML='<span class="dh">'+d.name+'</span>'+grpTag+impTag+'<span class="arr">▶</span>';
+  const body=ce('div'); body.className='acc-body';
+  let h='';
+  (d.desc||[]).forEach(p=> h+='<p class="desc">'+p+'</p>');
+  if(d.rel) h+='<div class="rel-note"><span class="lab">关联及包含 · </span>'+d.rel+'</div>';
+  h+='<div class="scene-title">生活场景（'+(d.scenes?d.scenes.length:0)+'）</div><ul class="scenes">';
+  (d.scenes||[]).forEach(s=> h+='<li>'+s+'</li>');
+  h+='</ul>';
+  const use=USE_MAP[d.name];
+  if(use){ h+='<div class="use-block"><div class="use-title">⚡ 转换与应对</div>'
+    +'<div class="use-sub">生活场景重现</div><p class="use-scene">'+use.scene+'</p>'
+    +'<div class="use-sub">如何用论典转换 · 应对 · 善用</div><p class="use-apply">'+(use.apply||'').replace(/\n/g,'<br>')+'</p></div>'; }
+  body.innerHTML=h;
+  head.onclick=()=>acc.classList.toggle('open');
+  acc.appendChild(head); acc.appendChild(body);
+  return acc;
+}
+function renderDetail(){
+  const wrap=$('#detailList'); wrap.innerHTML='';
+  CATS.forEach(c=>{
+    const block=ce('div'); block.className='cat-block open';
+    const bh=ce('div'); bh.className='cat-head';
+    bh.innerHTML='<span class="cat-name">'+c.name+'</span><span class="cat-count">'+c.count+' 法</span><span class="arr">▶</span>';
+    const bb=ce('div'); bb.className='cat-body';
+    if(c.intro){ const intro=ce('div'); intro.className='cat-info'; intro.textContent=c.intro; bb.appendChild(intro); }
+    if(c.groups && c.groups.length){
+      c.groups.forEach(g=>{
+        const gs=c.dharmas.filter(d=>d.group===g);
+        if(!gs.length) return;
+        const grp=ce('div'); grp.className='grp';
+        grp.innerHTML='<div class="grp-title">'+g+'<span class="gc">'+gs.length+' 法</span></div>';
+        gs.forEach(d=> grp.appendChild(makeDharmaAcc(d)));
+        bb.appendChild(grp);
+      });
+      const rest=c.dharmas.filter(d=>!d.group);
+      rest.forEach(d=> bb.appendChild(makeDharmaAcc(d)));
+    } else {
+      c.dharmas.forEach(d=> bb.appendChild(makeDharmaAcc(d)));
+    }
+    bh.onclick=()=>block.classList.toggle('open');
+    block.appendChild(bh); block.appendChild(bb); wrap.appendChild(block);
+  });
+}
+
+// 跳转到某法
+function goDetailTo(name){
+  goPage('detail');
+  setTimeout(()=>{
+    $$('.cat-block').forEach(b=>b.classList.add('open'));
+    const acc=$$('.acc').find(a=>a.dataset.name===name);
+    if(acc){ acc.classList.add('open'); acc.scrollIntoView({behavior:'smooth',block:'center'}); acc.classList.remove('flash'); void acc.offsetWidth; acc.classList.add('flash'); }
+  }, 80);
+}
+
+// ===== 逻辑图聚合节点下钻 =====
+const ALL_NAMES=new Set();
+CATS.forEach(c=>c.dharmas.forEach(d=>ALL_NAMES.add(d.name)));
+
+function openGraph(title,svg,extraText){
+  // 找出图中出现的聚合节点
+  const tmp=document.createElement('div'); tmp.innerHTML=svg;
+  const present=[];
+  tmp.querySelectorAll('text').forEach(t=>{ const k=t.textContent.trim(); if(DRILL[k]&&!present.includes(k)) present.push(k); });
+  // 渲染下钻 chips
+  let chipsHtml='';
+  present.forEach((k,idx)=>{
+    const ms=DRILL[k];
+    chipsHtml+='<div class="drill-grp" id="drillG'+idx+'"><div class="drill-h">'+k.replace(/（.*?）/,'')+'　含 '+ms.length+' 法</div><div class="drill-chips">';
+    ms.forEach(n=> chipsHtml+='<button class="drill-chip" data-n="'+n+'">'+n+'</button>');
+    chipsHtml+='</div></div>';
+  });
+  let body=svg;
+  if(chipsHtml) body+='<div class="drill-tip">点击下列法名，进入「论典详学」查看详情</div>'+chipsHtml;
+  if(extraText) body+='<div class="gm-text">'+extraText+'</div>';
+  $('#gmInner').innerHTML='<div class="gm-title">'+title+'</div>'+body;
+  const real=$('#gmInner');
+  // 图上节点：聚合节点点击滚到对应 chip 组；单个法名直接跳转
+  real.querySelectorAll('text').forEach(t=>{
+    const k=t.textContent.trim();
+    if(DRILL[k]){
+      const idx=present.indexOf(k);
+      t.style.cursor='pointer';
+      t.onclick=()=>{ const g=real.querySelector('#drillG'+idx); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); };
+    } else {
+      const base=k.replace(/（.*?）$/,'');
+      if(ALL_NAMES.has(base)){
+        t.style.cursor='pointer';
+        t.onclick=()=>{ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; goDetailTo(base); };
+      }
+    }
+  });
+  real.querySelectorAll('.drill-chip').forEach(b=> b.onclick=()=>{
+    $('#graphModal').classList.remove('show'); document.body.style.overflow=''; goDetailTo(b.dataset.n);
+  });
+  $('#graphModal').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+$('#gmClose').onclick=()=>{ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; };
+$('#graphModal').onclick=(e)=>{ if(e.target===$('#graphModal')){ $('#graphModal').classList.remove('show'); document.body.style.overflow=''; } };
+function renderGraphs(){
+  const g=$('#graphGrid'); g.innerHTML='';
+  GRAPH_META.forEach(m=>{
+    const card=ce('div'); card.className='graph-card';
+    card.innerHTML='<div class="gc-title">'+m.t+'</div><div class="gsvg">'+RELATION_GRAPHS[m.k]+'</div><div class="graph-text">'+(GRAPH_TEXT[m.k]||'')+'</div><div class="graph-hint">点击逻辑图，展开所含具体诸法 ▾</div>';
+    const s=card.querySelector('.gsvg'); if(s) s.onclick=()=>openGraph(m.t, RELATION_GRAPHS[m.k], GRAPH_TEXT[m.k]);
+    g.appendChild(card);
+  });
+}
+function renderVein(){
+  const g=$('#veinGrid'); g.innerHTML='';
+  RELATIONS.forEach(r=>{
+    const t=r.t; const svg=VEIN_GRAPHS[t]||''; const txt=VEIN_TEXT[t]||'';
+    const card=ce('div'); card.className='graph-card';
+    card.innerHTML='<div class="gc-title">'+t+'</div>'+(svg?'<div class="gsvg">'+svg+'</div>':'')+'<div class="graph-text">'+txt+'</div>'+(svg?'<div class="graph-hint">点击逻辑图，展开所含具体诸法 ▾</div>':'');
+    const s=card.querySelector('.gsvg'); if(s) s.onclick=()=>openGraph(t, svg, VEIN_TEXT[t]);
+    g.appendChild(card);
+  });
+}
+
+// ===== 核心重点（折叠）=====
+function renderKeyPoints(){
+  const list=$('#kpList'); list.innerHTML='';
+  KEYPOINTS.forEach(k=>{
+    const acc=ce('div'); acc.className='acc';
+    const head=ce('div'); head.className='acc-head';
+    head.innerHTML='<span class="dh">'+k.t+'</span><span class="arr">▶</span>';
+    const body=ce('div'); body.className='acc-body';
+    body.innerHTML='<div class="kp-body"><p class="plain"><b>通俗解释：</b>'+k.plain+'</p>'
+      +'<div class="meta"><span class="lab">法理说明：</span>'+k.meta+'</div>'
+      +'<div class="meta"><span class="lab">生活比喻：</span>'+k['比喻']+'</div>'
+      +'<div class="modern"><span class="lab">现代场景：</span>'+(k['现代']||'')+'</div></div>';
+    head.onclick=()=>acc.classList.toggle('open');
+    acc.appendChild(head); acc.appendChild(body); list.appendChild(acc);
+  });
+}
+
+// ===== 场景应用 =====
+function renderScenarios(){
+  const list=$('#scnList'); list.innerHTML='';
+  SCENARIOS.forEach(s=>{
+    const d=ce('div'); d.className='scn';
+    const head=ce('div'); head.className='scn-head';
+    head.innerHTML='<span>'+s.t+'</span><span class="arr">▶</span>';
+    const body=ce('div'); body.className='scn-body';
+    body.innerHTML='<div class="row"><span class="lab">情境描述：</span>'+s.situ+'</div>'
+      +'<div class="row"><span class="lab">论典分析：</span>'+s.ana+'</div>'
+      +'<div class="row"><span class="lab">具体应用：</span>'+s.app+'</div>'
+      +'<div class="row"><span class="lab">修行启示：</span>'+s.ins+'</div>'
+      +'<div class="row modern"><span class="lab">现代场景：</span>'+(s['现代']||'')+'</div>';
+    head.onclick=()=> d.classList.toggle('open');
+    d.appendChild(head); d.appendChild(body); list.appendChild(d);
+  });
+}
+
+// ===== 考试 =====
+let examFilter='全部';
+let examSub='';          // 子分类
+let examBatch=15;        // 每批题数
+const MAIN_FILTERS=["全部", "道前基础", "下士道", "中士道", "上士道", "发心实修", "关系", "重点法"];
+const SUB_MAP={"关系": [], "重点法": []};
+const SUB_GROUP_MAP={};
+const SUB_NAMES={};
+
+
+function renderFilter(){
+  const f=$('#examFilter'); f.innerHTML='';
+  // 第一行：主分类
+  const row1=ce('div'); row1.className='exam-filt-row';
+  MAIN_FILTERS.forEach(name=>{
+    const b=ce('button'); b.textContent=name; if(name===examFilter&&!examSub) b.className='active';
+    b.onclick=()=>{ examFilter=name; examSub=''; renderFilter(); };
+    row1.appendChild(b);
+  });
+  f.appendChild(row1);
+  // 第二行：子分类
+  const subs=SUB_MAP[examFilter];
+  if(subs && subs.length){
+    const row2=ce('div'); row2.className='exam-filt-row';
+    const lbl=ce('div'); lbl.className='exam-filt-label'; lbl.textContent='└ 子分类';
+    row2.appendChild(lbl);
+    // 「全部」子分类按钮
+    const allB=ce('button'); allB.textContent='全部'; allB.className='sub'+(!examSub?' active':'');
+    allB.onclick=()=>{ examSub=''; renderFilter(); }; row2.appendChild(allB);
+    subs.forEach(s=>{
+      const b=ce('button'); b.textContent=s; b.className='sub'+(examSub===s?' active':'');
+      b.onclick=()=>{ examSub=s; renderFilter(); };
+      row2.appendChild(b);
+    });
+    f.appendChild(row2);
+  }
+  // 第三行：每批题数
+  const row3=ce('div'); row3.className='exam-filt-row';
+  const sel=ce('select');
+  [10,15,20,30,50,999].forEach(n=>{
+    const o=ce('option'); o.value=n; o.textContent=n>=999?'全部(一次)':n+' 题/批'; if(n===examBatch)o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.onchange=()=>{ examBatch=+sel.value; };
+  const wrap=ce('div'); wrap.className='exam-batch';
+  wrap.innerHTML='<span>批次：</span>'; wrap.appendChild(sel);
+  row3.appendChild(wrap);
+  f.appendChild(row3);
+
+  // 显示当前范围题目数
+  const cnt=filteredExam().length;
+  const info=ce('div'); info.style.cssText='font-size:.781rem;color:var(--text-muted);margin-top:6px;';
+  info.textContent=cnt+' 题可选 · '+ (examBatch>=999?'一次性提交':Math.ceil(cnt/examBatch)+' 批次');
+  f.appendChild(info);
+}
+function filteredExam(){
+  let list=[];
+  if(examFilter==='全部'){ list=[...EXAM]; }
+  else if(examFilter==='重点法'){ list=EXAM.filter(q=>{ const d=findDharma(q.dh); return d&&d.imp; }); }
+  else { list=EXAM.filter(q=>q.cat===examFilter); }
+  // 子分类过滤（与详学结构对齐：按 group 反查，其余按具体法名反查）
+  if(examSub){
+    let names=null;
+    const grp=SUB_GROUP_MAP[examSub];
+    if(grp){
+      names=new Set();
+      CATS.forEach(c=>c.dharmas.forEach(d=>{if(d.group===grp)names.add(d.name);}));
+    }else if(SUB_NAMES[examSub]){
+      names=new Set(SUB_NAMES[examSub]);
+    }
+    if(names) list=list.filter(q=>names.has(q.dh));
+  }
+  return list;
+}
+function findDharma(name){ for(const c of CATS){ const d=c.dharmas.find(x=>x.name===name); if(d) return d; } return null; }
+let examPool=[];          // 当前批次的题目（已打乱）
+let examBatchIdx=0;       // 当前是第几批
+function startExam(){
+  const fullList=filteredExam();
+  // 打乱顺序
+  const shuffled=[...fullList].sort(()=>Math.random()-0.5);
+  // 分批截取
+  examBatchIdx=0;
+  if(examBatch>=999){ examPool=shuffled; }
+  else { examPool=shuffled.slice(0,examBatch); }
+  renderExamBatch();
+}
+function markQ(card, q){
+  const inputs=[...card.querySelectorAll('input')];
+  const aArr=Array.isArray(q.ans)?q.ans.slice().sort((a,b)=>a-b):[Number(q.ans)];
+  const sel=inputs.filter(i=>i.checked).map(i=>+i.value).sort((a,b)=>a-b);
+  const opts=card.querySelectorAll('.opt');
+  opts.forEach(o=>o.classList.remove('correct','wrong','sel'));
+  if(sel.length===0) return;
+  const isMulti=q.type==='multi';
+  const complete=!isMulti || sel.length===aArr.length;
+  if(!complete) return; // 多选：选满正确答案数量前不揭晓，避免提前剧透
+  opts.forEach((o,i)=>{
+    const input=o.querySelector('input');
+    if(input.checked) o.classList.add('sel');
+    if(aArr.indexOf(i)>=0) o.classList.add('correct');
+    if(input.checked && aArr.indexOf(i)<0) o.classList.add('wrong');
+  });
+  card.querySelector('.exp').classList.add('show');
+}
+function renderExamBatch(){
+  $('#examStart').style.display='none';
+  $('#examResult').style.display='none';
+  $('#examMain').style.display='block';
+  const fullLen=filteredExam().length;
+  const totalBatches = examBatch>=999?1:Math.ceil(fullLen/examBatch);
+  const box=$('#examQs'); box.innerHTML='';
+  examPool.forEach((q,idx)=>{
+    const card=ce('div'); card.className='q'; card.dataset.idx=idx;
+    const typ = q.type==='multi'?'多选':'单选';
+    let h='<div class="qnum">第 '+(idx+1)+'/'+examPool.length+' 题</div><div class="qmeta"><span class="typ">'+typ+'</span><span class="qt">'+q.q+'</span></div><div class="opts">';
+    q.opts.forEach((o,i)=>{
+      const t = q.type==='multi'?'checkbox':'radio';
+      h+='<label class="opt"><input type="'+t+'" name="q'+idx+'" value="'+i+'">'+o+'</label>';
+    });
+    h+='</div>';
+    if(q.dh) h+='<button class="qbtn dh-link" data-dh="'+q.dh+'">查看对应论典 · '+q.dh+'</button> ';
+    h+='<button class="qbtn explink">看解析</button><div class="exp">'+q.exp+'</div>';
+    card.innerHTML=h;
+    card.querySelector('.explink').onclick=(e)=>{ const ex=e.target.parentElement.querySelector('.exp'); ex.classList.toggle('show'); };
+    const dl=card.querySelector('.dh-link'); if(dl) dl.onclick=()=>goDetailTo(dl.dataset.dh);
+    [...card.querySelectorAll('input')].forEach(inp=>{ inp.addEventListener('change', ()=>markQ(card,q)); });
+    box.appendChild(card);
+  });
+  const subLabel = examSub ? ' › '+examSub : '';
+  let progText='本题范围：'+examFilter+subLabel;
+  if(totalBatches>1) progText += ' · 第 '+(examBatchIdx+1)+'/'+totalBatches+' 批 ('+examPool.length+'题)';
+  else progText += ' · 共 '+fullLen+' 题';
+  $('#examProgress').textContent=progText;
+  window.scrollTo(0,0);
+}
+function submitExam(){
+  const list=examPool;
+  let correct=0, total=list.length, answered=0;
+  list.forEach((q,idx)=>{
+    const card=$$('#examQs .q').find(c=>+c.dataset.idx===idx);
+    if(!card) return;
+    const sel=[...card.querySelectorAll('input:checked')].map(i=>+i.value).sort();
+    // 标准化 ans 为数值升序数组
+    const aArr=Array.isArray(q.ans)?q.ans.slice().sort():([]).concat(q.ans).map(Number).sort();
+    const aSet=aArr.join(','); const sSet=sel.join(',');
+    if(sel.length>0) answered++;
+    const opts=card.querySelectorAll('.opt');
+    opts.forEach((o,i)=>{
+      const input=o.querySelector('input');
+      o.classList.remove('correct','wrong','sel');
+      if(aArr.indexOf(i)>=0) o.classList.add('correct');
+      if(input.checked && aArr.indexOf(i)<0) o.classList.add('wrong');
+    });
+    if(sSet===aSet && sel.length>0){ correct++; card.querySelector('.exp').classList.add('show'); }
+  });
+  const pct = total? Math.round(correct/total*100):0;
+  let eval_txt = pct>=90?'通达无碍，百法在握。': pct>=75?'根基扎实，再练生熟。': pct>=60?'已入门径，勤加温习。':'尚须用功，回到论典详学对照。';
+  const fullLen=filteredExam().length;
+  const totalBatches = examBatch>=999?1:Math.ceil(fullLen/examBatch);
+  const isLast = (examBatchIdx+1)>=totalBatches;
+
+  $('#examMain').style.display='none';
+  const r=$('#examResult'); r.style.display='block';
+
+  let btns='';
+  if(totalBatches>1 && !isLast){
+    btns+='<button class="btn-primary" id="nextBatch" style="margin-right:10px">下一批 →</button>';
+  }
+  btns+='<button class="btn-primary" id="retryExam">'+(totalBatches>1&&!isLast?'本批重做':'返回筛选')+'</button>';
+
+  r.innerHTML='<div class="result"><div class="score">'+pct+'<span>%</span></div>'
+    +'<div class="eval">'+eval_txt+'</div>'
+    +'<p>答对 <strong>'+correct+'</strong> / 共 '+total+' 题（已作答 '+answered+' 题）'
+    +(totalBatches>1?' · 第 '+(examBatchIdx+1)+'/'+totalBatches+' 批':'')+'</p>'
+    +'<p class="muted">绿色为正确项，红色为误选。</p>'
+    +'<div style="text-align:center;margin-top:14px;display:flex;justify-content:center;flex-wrap:wrap;gap:8px">'+btns+'</div></div>';
+
+  if(totalBatches>1 && !isLast){
+    $('#nextBatch').onclick=()=>{
+      examBatchIdx++;
+      // 取下一批
+      const fullList=filteredExam().sort(()=>Math.random()-0.5);
+      const start=examBatchIdx*examBatch;
+      examPool=fullList.slice(start, start+examBatch);
+      renderExamBatch();
+    };
+  }
+  $('#retryExam').onclick=()=>{ $('#examResult').style.display='none'; $('#examStart').style.display='block'; };
+  window.scrollTo(0,0);
+}
+$('#startExam').onclick=startExam;
+$('#submitExam').onclick=submitExam;
+$('#backToFilter').onclick=()=>{ $('#examMain').style.display='none'; $('#examResult').style.display='none'; $('#examStart').style.display='block'; };
+
+// ===== 初始渲染 =====
+renderDetail();
+renderGraphs();
+renderVein();
+renderKeyPoints();
+renderScenarios();
+renderFilter();
+</script>
+<script>
+(function(){
+  var FS_OPTS=[85,100,115,130,145];
+  var fpOpts=document.getElementById('fpOpts');
+  var pop=document.getElementById('fontPop');
+  var BASE=16;
+  var cur=parseInt(localStorage.getItem('gl-fs')||'100',10);
+  function setFS(v){
+    cur=v; localStorage.setItem('gl-fs',String(v));
+    document.documentElement.style.fontSize=(BASE*v/100)+'px';
+    [].forEach.call(fpOpts.children,function(c){ c.classList.toggle('on', parseInt(c.textContent,10)===v); });
+  }
+  FS_OPTS.forEach(function(v){
+    var b=document.createElement('button'); b.className='fp-opt'; b.textContent=v+'%';
+    b.onclick=function(){ setFS(v); };
+    fpOpts.appendChild(b);
+  });
+  setFS(cur);
+  var ft=document.getElementById('fontToggle');
+  ft.onclick=function(e){ e.stopPropagation(); pop.classList.toggle('show'); };
+  document.addEventListener('click',function(e){
+    if(pop.classList.contains('show') && !pop.contains(e.target) && e.target!==ft) pop.classList.remove('show');
+  });
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('guanglun-sw.js').catch(function(){}); });
+  }
+})();
+</script>
+</body>
+</html>
